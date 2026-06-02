@@ -98,12 +98,12 @@ function setLoading(btnId, loading) {
 
 // ---- Toggle Forms ----
 document.getElementById('showSignup').onclick = function() {
-  document.getElementById('loginForm').style.display = 'none';
-  document.getElementById('signupForm').removeAttribute('hidden');
+  document.getElementById('loginForm').hidden = true;
+  document.getElementById('signupForm').hidden = false;
 };
 document.getElementById('showLogin').onclick = function() {
-  document.getElementById('loginForm').style.display = 'block';
-  document.getElementById('signupForm').setAttribute('hidden', '');
+  document.getElementById('loginForm').hidden = false;
+  document.getElementById('signupForm').hidden = true;
 };
 
 // ---- Login ----

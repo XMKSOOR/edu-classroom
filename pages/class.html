@@ -24,16 +24,16 @@
     <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar" aria-hidden="true"></i><span> الدرجات</span></a>
   </nav>
   <div class="topbar-left">
-    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')" aria-label="الإشعارات"><i class="ti ti-bell"></i></button>
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')" aria-label="الإشعارات"><i class="ti ti-bell" aria-hidden="true"></i></button>
     <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar" aria-hidden="true">...</div><span id="userName">جاري التحميل...</span></a>
-    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج" aria-label="تسجيل الخروج"><i class="ti ti-logout"></i></button>
+    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج" aria-label="تسجيل الخروج"><i class="ti ti-logout" aria-hidden="true"></i></button>
   </div>
 </header>
 
 <main class="main-content">
-  <div id="loadingView" class="loading-spinner"><i class="ti ti-loader"></i></div>
-  <div id="classContent" style="display:none">
-    <button class="back-btn" onclick="window.location.href='../dashboard.html'" aria-label="العودة للصفوف"><i class="ti ti-arrow-right"></i> العودة للصفوف</button>
+  <div id="loadingView" class="loading-spinner"><i class="ti ti-loader" aria-hidden="true"></i></div>
+  <div id="classContent" hidden>
+    <button class="back-btn" onclick="window.location.href='../dashboard.html'" aria-label="العودة للصفوف"><i class="ti ti-arrow-right" aria-hidden="true"></i> العودة للصفوف</button>
     <section id="classHero" class="class-hero" aria-label="معلومات الصف"></section>
     <div class="tabs-bar" role="tablist" aria-label="أقسام الصف">
       <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-stream" id="tab-btn-stream" onclick="switchTab('stream')">الإعلانات</button>
@@ -154,8 +154,8 @@ function init() {
   getAllClassesRef().doc(classId).onSnapshot(function(doc) {
     if (!doc.exists) { showNotification('الصف غير موجود'); window.location.href = '../dashboard.html'; return; }
     _currentClass = {id: doc.id, ...doc.data()};
-    document.getElementById('loadingView').style.display = 'none';
-    document.getElementById('classContent').style.display = 'block';
+    document.getElementById('loadingView').hidden = true;
+    document.getElementById('classContent').hidden = false;
     renderHero();
     renderActiveTab();
   }, function(err) { Logger.error('class listener: ' + err.message); });
