@@ -147,6 +147,10 @@ document.getElementById('googleBtn').onclick = googleLogin;
 document.getElementById('googleBtn2').onclick = googleLogin;
 
 // ---- Already logged in? ----
+// Clear stale flag after 10s (in case login was interrupted)
+if (localStorage.getItem('edu_just_logged_in')) {
+  setTimeout(function() { localStorage.removeItem('edu_just_logged_in'); }, 10000);
+}
 auth.onAuthStateChanged(function(user) {
   if (user && !localStorage.getItem('edu_just_logged_in')) {
     window.location.href = 'dashboard.html';
