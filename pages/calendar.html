@@ -45,49 +45,66 @@
 </div>
 </div>
 <div id="notification" class="notification hidden"></div>
-<script>try{var u=JSON.parse(localStorage.getItem('edu_user'));if(u&&u.uid)currentUser=u}catch(e){}</script>
+<script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="../js/app.js"></script>
 <script>
-const arabicMonths=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
-const arabicDays=['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
-let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+var arabicMonths = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+var arabicDays = ['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+var calYear = new Date().getFullYear();
+var calMonth = new Date().getMonth();
 
-function init(){
-  if(!currentUser){window.location.href='../index.html';return}
-  document.getElementById('userName').textContent=currentUser.name;
-  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
+function init() {
+  if (!currentUser) { window.location.href = '../index.html'; return; }
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userAvatar').textContent = currentUser.name.substring(0, 2);
   renderCalendar();
-  getClassRef().onSnapshot(s=>{_cloudClasses=s.docs.map(d=>({id:d.id,...d.data()}));renderCalendar()});
+  getClassRef().onSnapshot(function(s) { _cloudClasses = s.docs.map(function(d) { return {id: d.id, ...d.data()}; }); renderCalendar(); });
 }
 
-function renderCalendar(){
-  const d=new Date(calYear,calMonth,1);
-  document.getElementById('calTitle').textContent=arabicMonths[calMonth]+' '+calYear;
-  const grid=document.getElementById('calGrid');
-  const startDay=d.getDay(),daysInMonth=new Date(calYear,calMonth+1,0).getDate();
-  const today=new Date();
-  let html=arabicDays.map(d=>`<div style="text-align:center;font-size:12px;font-weight:600;color:var(--text2);padding:6px">${d}</div>`).join('');
-  for(let i=0;i<startDay;i++) html+=`<div></div>`;
-  for(let day=1;day<=daysInMonth;day++){
-    const isToday=day===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
-    const dateStr=calYear+'-'+String(calMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
-    const hasDue=_cloudClasses.some(c=>(c.assignments_data||[]).some(a=>a.dueISO===dateStr));
-    html+=`<div class="cal-day ${isToday?'today':''}" onclick="showNotification('${day} ${arabicMonths[calMonth]}')">${day}${hasDue?`<div class="dot"></div>`:''}</div>`;
+function renderCalendar() {
+  var d = new Date(calYear, calMonth, 1);
+  document.getElementById('calTitle').textContent = arabicMonths[calMonth] + ' ' + calYear;
+  var grid = document.getElementById('calGrid');
+  var startDay = d.getDay();
+  var daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+  var today = new Date();
+  var html = arabicDays.map(function(d) { return '<div style="text-align:center;font-size:12px;font-weight:600;color:var(--text2);padding:6px">' + d + '</div>'; }).join('');
+  for (var i = 0; i < startDay; i++) html += '<div></div>';
+  for (var day = 1; day <= daysInMonth; day++) {
+    var isToday = day === today.getDate() && calMonth === today.getMonth() && calYear === today.getFullYear();
+    var dateStr = calYear + '-' + String(calMonth + 1).padStart(2, '0') + '-' + String(day).padStart(2, '0');
+    var hasDue = false;
+    for (var ci = 0; ci < _cloudClasses.length; ci++) {
+      var ads = _cloudClasses[ci].assignments_data || [];
+      for (var ai = 0; ai < ads.length; ai++) {
+        if (ads[ai].dueISO === dateStr) { hasDue = true; break; }
+      }
+      if (hasDue) break;
+    }
+    html += '<div class="cal-day' + (isToday ? ' today' : '') + '" onclick="showNotification(\'' + day + ' ' + arabicMonths[calMonth] + '\')">' + day + (hasDue ? '<div class="dot"></div>' : '') + '</div>';
   }
-  grid.innerHTML=html;
+  grid.innerHTML = html;
   // upcoming
-  const allTasks=_cloudClasses.flatMap(c=>(c.assignments_data||[]).map(a=>({...a,class:c.name,color:(COLORS[c.color]||COLORS[0]).bg})));
-  const pending=allTasks.filter(a=>a.status==='pending'||a.status==='late');
-  document.getElementById('upcomingList').innerHTML=pending.length
-    ?pending.map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
-      <div style="width:8px;height:8px;border-radius:50%;background:${a.color};flex-shrink:0"></div>
-      <div style="flex:1"><div style="font-size:14px;font-weight:600">${a.title}</div><div style="font-size:12px;color:var(--text2)">${a.class}</div></div>
-      <span style="font-size:12px;color:var(--text3)">${a.due}</span>
-    </div>`).join('')
-    :`<div class="empty-state"><i class="ti ti-calendar-check"></i><h3>لا توجد مواعيد قادمة</h3></div>`;
+  var allTasks = [];
+  for (var ci = 0; ci < _cloudClasses.length; ci++) {
+    var ads = _cloudClasses[ci].assignments_data || [];
+    for (var ai = 0; ai < ads.length; ai++) {
+      allTasks.push({title: ads[ai].title, due: ads[ai].due, status: ads[ai].status, className: _cloudClasses[ci].name, color: (COLORS[_cloudClasses[ci].color] || COLORS[0]).bg});
+    }
+  }
+  var pending = allTasks.filter(function(a) { return a.status === 'pending' || a.status === 'late'; });
+  document.getElementById('upcomingList').innerHTML = pending.length
+    ? pending.map(function(a) {
+        return '<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">' +
+          '<div style="width:8px;height:8px;border-radius:50%;background:' + a.color + ';flex-shrink:0"></div>' +
+          '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + a.title + '</div><div style="font-size:12px;color:var(--text2)">' + a.className + '</div></div>' +
+          '<span style="font-size:12px;color:var(--text3)">' + a.due + '</span></div>';
+      }).join('')
+    : '<div class="empty-state"><i class="ti ti-calendar-check"></i><h3>لا توجد مواعيد قادمة</h3></div>';
 }
-function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--}renderCalendar()}
-function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++}renderCalendar()}
+
+function prevMonth() { calMonth--; if (calMonth < 0) { calMonth = 11; calYear--; } renderCalendar(); }
+function nextMonth() { calMonth++; if (calMonth > 11) { calMonth = 0; calYear++; } renderCalendar(); }
 init();
 </script>
 </body>

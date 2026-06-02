@@ -48,95 +48,105 @@
 
 <div id="notification" class="notification hidden"></div>
 
+<!-- Load Firebase SDK -->
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+
 <script>
-var firebaseConfig = {
+// ---- Firebase Init ----
+firebase.initializeApp({
   apiKey: "AIzaSyACPGcCa9V0IhjMJASYehP6NBR45IZ63Fw",
   authDomain: "edu-classroom-a2b8d.firebaseapp.com",
   projectId: "edu-classroom-a2b8d",
   storageBucket: "edu-classroom-a2b8d.firebasestorage.app",
   messagingSenderId: "1026113862086",
   appId: "1:1026113862086:web:1b5a7f0e09841987d7dac7"
-};
-firebase.initializeApp(firebaseConfig);
+});
 var auth = firebase.auth();
 var db = firebase.firestore();
 
-function notify(msg) {
+// ---- Helpers ----
+function note(msg) {
   var n = document.getElementById('notification');
   n.innerHTML = '<i class="ti ti-info-circle"></i> ' + msg;
   n.classList.remove('hidden');
   setTimeout(function() { n.classList.add('hidden'); }, 3500);
 }
 
-function goToDashboard() {
+function saveAndGo(uid, name, role) {
+  localStorage.setItem('edu_user', JSON.stringify({uid: uid, name: name, role: role || 'student'}));
   localStorage.setItem('edu_just_logged_in', '1');
-  window.location.href = 'dashboard.html';
+  // Wait a moment so Firebase can persist the auth session
+  setTimeout(function() { window.location.href = 'dashboard.html'; }, 1200);
 }
 
-function toggleLogin(show) {
-  document.getElementById('loginForm').style.display = show ? 'block' : 'none';
-  document.getElementById('signupForm').style.display = show ? 'none' : 'block';
-}
+// ---- Toggle Forms ----
+document.getElementById('showSignup').onclick = function() {
+  document.getElementById('loginForm').style.display = 'none';
+  document.getElementById('signupForm').style.display = 'block';
+};
+document.getElementById('showLogin').onclick = function() {
+  document.getElementById('loginForm').style.display = 'block';
+  document.getElementById('signupForm').style.display = 'none';
+};
 
-// Toggle buttons
-document.getElementById('showSignup').addEventListener('click', function() { toggleLogin(false); });
-document.getElementById('showLogin').addEventListener('click', function() { toggleLogin(true); });
-
-// Email/password login
-document.getElementById('loginBtn').addEventListener('click', function() {
+// ---- Login ----
+document.getElementById('loginBtn').onclick = function() {
   var email = document.getElementById('auth-email').value.trim();
   var pass = document.getElementById('auth-pass').value;
-  if (!email || !pass) { notify('قم بملء جميع الحقول'); return; }
-  auth.signInWithEmailAndPassword(email, pass).then(function() {
-    var u = auth.currentUser;
-    localStorage.setItem('edu_user', JSON.stringify({uid: u.uid, name: u.displayName || u.email, role: 'student'}));
-    goToDashboard();
-  }).catch(function(e) { notify(e.message); });
-});
+  if (!email || !pass) { note('قم بملء جميع الحقول'); return; }
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(function() {
+      var u = auth.currentUser;
+      saveAndGo(u.uid, u.displayName || u.email, 'student');
+    })
+    .catch(function(e) { note(e.message); });
+};
 
-// Email/password signup
-document.getElementById('signupBtn').addEventListener('click', function() {
+// ---- Signup ----
+document.getElementById('signupBtn').onclick = function() {
   var name = document.getElementById('auth-name').value.trim();
   var email = document.getElementById('auth-email-signup').value.trim();
   var pass = document.getElementById('auth-pass-signup').value;
   var role = document.getElementById('auth-role').value;
-  if (!name || !email || !pass) { notify('قم بملء جميع الحقول'); return; }
-  if (pass.length < 6) { notify('كلمة المرور 6 أحرف على الأقل'); return; }
-  auth.createUserWithEmailAndPassword(email, pass).then(function(cred) {
-    return cred.user.updateProfile({displayName: name}).then(function() {
-      return db.collection('users').doc(cred.user.uid).set({name: name, email: email, role: role, createdAt: Date.now()});
-    }).then(function() {
-      localStorage.setItem('edu_user', JSON.stringify({uid: cred.user.uid, name: name, role: role}));
-      goToDashboard();
-    });
-  }).catch(function(e) { notify(e.message); });
-});
+  if (!name || !email || !pass) { note('قم بملء جميع الحقول'); return; }
+  if (pass.length < 6) { note('كلمة المرور 6 أحرف على الأقل'); return; }
+  auth.createUserWithEmailAndPassword(email, pass)
+    .then(function(cred) {
+      return cred.user.updateProfile({displayName: name}).then(function() {
+        return db.collection('users').doc(cred.user.uid).set({
+          name: name, email: email, role: role, createdAt: Date.now()
+        });
+      }).then(function() {
+        saveAndGo(cred.user.uid, name, role);
+      });
+    })
+    .catch(function(e) { note(e.message); });
+};
 
-// Google sign-in
+// ---- Google ----
 function googleLogin() {
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function(result) {
-    var user = result.user;
-    return db.collection('users').doc(user.uid).get().then(function(snap) {
-      var role = 'student';
-      if (!snap.exists) {
-        role = confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)') ? 'teacher' : 'student';
-        return db.collection('users').doc(user.uid).set({name: user.displayName, email: user.email, role: role, createdAt: Date.now()}).then(function() { return role; });
-      }
-      return snap.data().role || 'student';
-    }).then(function(role) {
-      localStorage.setItem('edu_user', JSON.stringify({uid: user.uid, name: user.displayName || 'مستخدم', role: role}));
-      goToDashboard();
-    });
-  }).catch(function(e) { notify(e.message); });
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
+    .then(function(result) {
+      var user = result.user;
+      return db.collection('users').doc(user.uid).get().then(function(snap) {
+        if (snap.exists) return snap.data().role || 'student';
+        var role = confirm('هل تريد التسجيل كمعلم؟ (OK=معلم، إلغاء=طالب)') ? 'teacher' : 'student';
+        return db.collection('users').doc(user.uid).set({
+          name: user.displayName, email: user.email, role: role, createdAt: Date.now()
+        }).then(function() { return role; });
+      }).then(function(role) {
+        saveAndGo(user.uid, user.displayName, role);
+      });
+    })
+    .catch(function(e) { note(e.message); });
 }
-document.getElementById('googleBtn').addEventListener('click', googleLogin);
-document.getElementById('googleBtn2').addEventListener('click', googleLogin);
+document.getElementById('googleBtn').onclick = googleLogin;
+document.getElementById('googleBtn2').onclick = googleLogin;
 
-// Redirect if already logged in
+// ---- Already logged in? ----
 auth.onAuthStateChanged(function(user) {
   if (user && !localStorage.getItem('edu_just_logged_in')) {
     window.location.href = 'dashboard.html';

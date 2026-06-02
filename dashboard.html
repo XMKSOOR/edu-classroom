@@ -16,7 +16,6 @@
 <body>
 <div class="app-wrapper">
 
-<!-- TOPBAR -->
 <div class="topbar">
   <a href="dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
   <div class="topbar-center">
@@ -34,10 +33,7 @@
   </div>
 </div>
 
-<!-- MAIN -->
 <div class="main-content">
-
-  <!-- JOIN BANNER -->
   <div class="join-banner">
     <div>
       <h2>مرحباً بك في المدرسة النظامية 🎓</h2>
@@ -48,31 +44,23 @@
       <button class="btn btn-primary" style="background:#fff;color:var(--primary)" onclick="joinClass()"><i class="ti ti-plus"></i> انضم الآن</button>
     </div>
   </div>
-
-  <!-- STATS -->
   <div class="stats-grid" id="statsGrid"></div>
-
-  <!-- CLASSES -->
   <div class="section-header">
     <span>صفوفي الدراسية</span>
     <button class="btn btn-primary btn-sm" onclick="openModal('createClass')"><i class="ti ti-plus"></i> إنشاء صف</button>
   </div>
   <div class="classes-grid" id="classesGrid"></div>
-
-  <!-- RECENT ACTIVITY -->
   <div style="margin-top:32px">
     <div class="section-header"><span>آخر النشاطات</span></div>
     <div class="card" id="recentActivity">
       <div class="empty-state"><i class="ti ti-activity"></i><h3>لا توجد نشاطات حديثة</h3><p>سيتم عرض آخر التحديثات هنا</p></div>
     </div>
   </div>
-
 </div>
 </div>
 
 <div id="notification" class="notification hidden"></div>
 
-<!-- MODALS -->
 <div id="modal-createClass" class="modal-overlay hidden">
   <div class="modal">
     <h2>إنشاء صف جديد</h2>
@@ -87,133 +75,116 @@
   </div>
 </div>
 
-<script>try{var u=JSON.parse(localStorage.getItem('edu_user'));if(u&&u.uid)currentUser=u}catch(e){}</script>
+<script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="js/app.js"></script>
 <script>
-/* ========== RENDER ========== */
-function renderDashboard(){
-  if(!currentUser){window.location.href='index.html';return}
-  document.getElementById('userName').textContent=currentUser.name;
-  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
-  document.getElementById('welcomeMsg').textContent=currentUser.role==='teacher'
-    ?'أهلاً بك يا معلم، يمكنك إنشاء الصفوف وإدارة المهام'
-    :'انضم إلى صفك الدراسي وابدأ رحلة تعلمك اليوم';
+function renderDashboard() {
+  if (!currentUser) { window.location.href = 'index.html'; return; }
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userAvatar').textContent = currentUser.name.substring(0, 2);
+  document.getElementById('welcomeMsg').textContent = currentUser.role === 'teacher'
+    ? 'أهلاً بك يا معلم، يمكنك إنشاء الصفوف وإدارة المهام'
+    : 'انضم إلى صفك الدراسي وابدأ رحلة تعلمك اليوم';
   loadClasses();
 }
 
-function loadClasses(){
-  getClassRef().onSnapshot(snap=>{
-    _cloudClasses=snap.docs.map(d=>({id:d.id,...d.data()}));
+function loadClasses() {
+  getClassRef().onSnapshot(function(snap) {
+    _cloudClasses = snap.docs.map(function(d) { return {id: d.id, ...d.data()}; });
     renderStats();
     renderClassCards();
-  },err=>{if(err.code!='permission-denied')Logger.error('loadClasses: '+err.message)});
+  }, function(err) { if (err.code !== 'permission-denied') Logger.error('loadClasses: ' + err.message); });
 }
 
-function renderStats(){
-  const g=document.getElementById('statsGrid');
-  const total=_cloudClasses.length;
-  const tasks=_cloudClasses.reduce((s,c)=>(c.assignments_data||[]).length+s,0);
-  const lessons=_cloudClasses.reduce((s,c)=>(c.lessons_data||[]).length+s,0);
-  const pending=_cloudClasses.reduce((s,c)=>(c.assignments_data||[]).filter(a=>a.status==='pending').length+s,0);
-  g.innerHTML=`
-    <div class="stat-card"><div class="stat-card-icon" style="background:var(--primary-light);color:var(--primary)"><i class="ti ti-school"></i></div><div class="stat-card-info"><h3>${total}</h3><p>الصفوف المسجلة</p></div></div>
-    <div class="stat-card"><div class="stat-card-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-clipboard"></i></div><div class="stat-card-info"><h3>${tasks}</h3><p>إجمالي المهام</p></div></div>
-    <div class="stat-card"><div class="stat-card-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-book"></i></div><div class="stat-card-info"><h3>${lessons}</h3><p>الدروس المتاحة</p></div></div>
-    <div class="stat-card"><div class="stat-card-icon" style="background:var(--orange-light);color:var(--orange)"><i class="ti ti-clock"></i></div><div class="stat-card-info"><h3>${pending}</h3><p>مهام معلقة</p></div></div>
-  `;
+function renderStats() {
+  var g = document.getElementById('statsGrid');
+  var total = _cloudClasses.length;
+  var tasks = _cloudClasses.reduce(function(s, c) { return (c.assignments_data || []).length + s; }, 0);
+  var lessons = _cloudClasses.reduce(function(s, c) { return (c.lessons_data || []).length + s; }, 0);
+  var pending = _cloudClasses.reduce(function(s, c) { return (c.assignments_data || []).filter(function(a) { return a.status === 'pending'; }).length + s; }, 0);
+  g.innerHTML = '<div class="stat-card"><div class="stat-card-icon" style="background:var(--primary-light);color:var(--primary)"><i class="ti ti-school"></i></div><div class="stat-card-info"><h3>' + total + '</h3><p>الصفوف المسجلة</p></div></div>' +
+    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-clipboard"></i></div><div class="stat-card-info"><h3>' + tasks + '</h3><p>إجمالي المهام</p></div></div>' +
+    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-book"></i></div><div class="stat-card-info"><h3>' + lessons + '</h3><p>الدروس المتاحة</p></div></div>' +
+    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--orange-light);color:var(--orange)"><i class="ti ti-clock"></i></div><div class="stat-card-info"><h3>' + pending + '</h3><p>مهام معلقة</p></div></div>';
 }
 
-function renderClassCards(){
-  const g=document.getElementById('classesGrid');
-  if(!_cloudClasses.length){
-    g.innerHTML=`<div style="grid-column:1/-1"><div class="empty-state"><i class="ti ti-school"></i><h3>لا توجد صفوف بعد</h3><p>أنشئ صفاً جديداً أو انضم إلى صف باستخدام رمز الصف</p><button class="btn btn-primary" onclick="openModal('createClass')"><i class="ti ti-plus"></i> إنشاء صف</button></div></div>`;
+function renderClassCards() {
+  var g = document.getElementById('classesGrid');
+  if (!_cloudClasses.length) {
+    g.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><i class="ti ti-school"></i><h3>لا توجد صفوف بعد</h3><p>أنشئ صفاً جديداً أو انضم إلى صف باستخدام رمز الصف</p><button class="btn btn-primary" onclick="openModal(\'createClass\')"><i class="ti ti-plus"></i> إنشاء صف</button></div></div>';
     return;
   }
-  g.innerHTML=_cloudClasses.map(c=>{
-    const col=COLORS[c.color]||COLORS[0];
-    const pending=(c.assignments_data||[]).filter(a=>a.status==='pending').length;
-    return `<div class="class-card" onclick="openClassDetail('${c.id}')">
-      <div class="class-header" style="background:${col.grad}">
-        <div class="class-icon-badge"><i class="ti ti-book"></i></div>
-        <div class="class-subject-badge">${c.subject||'عام'}</div>
-        <h3>${c.name}</h3>
-        <p>${c.teacher||'—'}</p>
-      </div>
-      <div class="class-body">
-        <div class="class-meta">
-          <span><i class="ti ti-users"></i> ${c.students||0} طالب</span>
-          <span><i class="ti ti-clipboard"></i> ${(c.assignments_data||[]).length} مهام</span>
-          ${pending?`<span style="color:var(--orange)"><i class="ti ti-clock"></i> ${pending} معلقة</span>`:''}
-        </div>
-        <div class="class-footer">
-          <span class="join-code">${c.code||'—'}</span>
-          <div style="display:flex;gap:6px">
-            <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openClassDetail('${c.id}')">فتح الصف</button>
-            ${currentUser?.role==='teacher'?`<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass('${c.id}')" title="حذف"><i class="ti ti-trash"></i></button>`:''}
-          </div>
-        </div>
-        <div class="progress-bar"><div class="progress-fill" style="width:${c.progress||0}%;background:${col.bg}"></div></div>
-      </div>
-    </div>`;
+  g.innerHTML = _cloudClasses.map(function(c) {
+    var col = COLORS[c.color] || COLORS[0];
+    var pending = (c.assignments_data || []).filter(function(a) { return a.status === 'pending'; }).length;
+    return '<div class="class-card" onclick="openClassDetail(\'' + c.id + '\')">' +
+      '<div class="class-header" style="background:' + col.grad + '">' +
+      '<div class="class-icon-badge"><i class="ti ti-book"></i></div>' +
+      '<div class="class-subject-badge">' + (c.subject || 'عام') + '</div>' +
+      '<h3>' + c.name + '</h3><p>' + (c.teacher || '—') + '</p></div>' +
+      '<div class="class-body"><div class="class-meta">' +
+      '<span><i class="ti ti-users"></i> ' + (c.students || 0) + ' طالب</span>' +
+      '<span><i class="ti ti-clipboard"></i> ' + (c.assignments_data || []).length + ' مهام</span>' +
+      (pending ? '<span style="color:var(--orange)"><i class="ti ti-clock"></i> ' + pending + ' معلقة</span>' : '') +
+      '</div><div class="class-footer"><span class="join-code">' + (c.code || '—') + '</span>' +
+      '<div style="display:flex;gap:6px">' +
+      '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openClassDetail(\'' + c.id + '\')">فتح الصف</button>' +
+      (currentUser && currentUser.role === 'teacher' ? '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass(\'' + c.id + '\')" title="حذف"><i class="ti ti-trash"></i></button>' : '') +
+      '</div></div><div class="progress-bar"><div class="progress-fill" style="width:' + (c.progress || 0) + '%;background:' + col.bg + '"></div></div></div></div>';
   }).join('');
 }
 
-/* ========== ACTIONS ========== */
-function openClassDetail(id){
-  window.location.href='pages/class.html?id='+id;
+function openClassDetail(id) { window.location.href = 'pages/class.html?id=' + id; }
+
+function deleteClass(id) {
+  if (!currentUser || currentUser.role !== 'teacher') { showNotification('فقط المعلم يمكنه حذف الصف'); return; }
+  if (!confirm('هل أنت متأكد من حذف هذا الصف؟')) return;
+  getAllClassesRef().doc(id).delete().then(function() { showNotification('تم حذف الصف بنجاح 🗑️'); }).catch(function(e) { showNotification(e.message); });
 }
 
-function deleteClass(id){
-  if(currentUser?.role!=='teacher'){showNotification('فقط المعلم يمكنه حذف الصف');return}
-  if(!confirm('هل أنت متأكد من حذف هذا الصف؟'))return;
-  getAllClassesRef().doc(id).delete().then(()=>{
-    showNotification('تم حذف الصف بنجاح 🗑️');
-  }).catch(e=>showNotification(e.message));
-}
-
-function joinClass(){
-  const code=document.getElementById('joinCode').value.trim().toUpperCase();
-  if(!code){showNotification('أدخل رمز الصف أولاً ⚠️');return}
-  Logger.info('joinClass attempt: '+code);
-  getAllClassesRef().where('code','==',code).get().then(snap=>{
-    if(snap.empty){showNotification('لم يُعثر على صف بهذا الرمز');return}
-    const doc=snap.docs[0];
-    const data=doc.data();
-    if(data.members?.includes(currentUser.uid)){showNotification('أنت مسجل بالفعل');return}
+function joinClass() {
+  var code = document.getElementById('joinCode').value.trim().toUpperCase();
+  if (!code) { showNotification('أدخل رمز الصف أولاً ⚠️'); return; }
+  getAllClassesRef().where('code', '==', code).get().then(function(snap) {
+    if (snap.empty) { showNotification('لم يُعثر على صف بهذا الرمز'); return; }
+    var doc = snap.docs[0];
+    var data = doc.data();
+    if (data.members && data.members.indexOf(currentUser.uid) >= 0) { showNotification('أنت مسجل بالفعل'); return; }
     doc.ref.update({
-      members:firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
-      students:firebase.firestore.FieldValue.increment(1)
-    }).then(()=>{
-      document.getElementById('joinCode').value='';
+      members: firebase.firestore.FieldValue.arrayUnion(currentUser.uid),
+      students: firebase.firestore.FieldValue.increment(1)
+    }).then(function() {
+      document.getElementById('joinCode').value = '';
       showNotification('تم الانضمام بنجاح! 🎉');
     });
-  }).catch(e=>showNotification(e.message));
+  }).catch(function(e) { showNotification(e.message); });
 }
 
-function createClass(){
-  const name=document.getElementById('cc-name').value.trim();
-  const subject=document.getElementById('cc-subject').value.trim();
-  if(!name||!subject){showNotification('يرجى ملء جميع الحقول المطلوبة');return}
-  const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const code=Array.from({length:6},()=>chars[Math.floor(Math.random()*chars.length)]).join('');
-  const col=Math.floor(Math.random()*COLORS.length);
+function createClass() {
+  var name = document.getElementById('cc-name').value.trim();
+  var subject = document.getElementById('cc-subject').value.trim();
+  if (!name || !subject) { showNotification('يرجى ملء جميع الحقول المطلوبة'); return; }
+  var chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  var code = '';
+  for (var i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  var col = Math.floor(Math.random() * COLORS.length);
   getAllClassesRef().add({
-    name,subject,teacher:currentUser.name,teacherId:currentUser.uid,
-    color:col,code,students:0,assignments:0,progress:0,
-    assignments_data:[],lessons_data:[],stream:[],people:[],
-    members:[currentUser.uid],createdAt:Date.now()
-  }).then(ref=>{
+    name: name, subject: subject, teacher: currentUser.name, teacherId: currentUser.uid,
+    color: col, code: code, students: 0, assignments: 0, progress: 0,
+    assignments_data: [], lessons_data: [], stream: [], people: [],
+    members: [currentUser.uid], createdAt: Date.now()
+  }).then(function(ref) {
     closeModal('createClass');
-    document.getElementById('cc-name').value='';
-    document.getElementById('cc-subject').value='';
-    showNotification(`تم إنشاء الصف! رمز الصف: ${code} ✅`);
-  }).catch(e=>showNotification(e.message));
+    document.getElementById('cc-name').value = '';
+    document.getElementById('cc-subject').value = '';
+    showNotification('تم إنشاء الصف! رمز الصف: ' + code + ' ✅');
+  }).catch(function(e) { showNotification(e.message); });
 }
 
-function openModal(id){document.getElementById('modal-'+id).classList.remove('hidden')}
-function closeModal(id){document.getElementById('modal-'+id).classList.add('hidden')}
-document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden')});
+function openModal(id) { document.getElementById('modal-' + id).classList.remove('hidden'); }
+function closeModal(id) { document.getElementById('modal-' + id).classList.add('hidden'); }
+document.querySelectorAll('.modal-overlay').forEach(function(m) {
+  m.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
 });
 
 renderDashboard();

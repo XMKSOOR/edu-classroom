@@ -30,9 +30,7 @@
 </div>
 <div class="main-content">
   <div class="section-header"><span>الملف الشخصي</span></div>
-
   <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px">
-    <!-- Profile Card -->
     <div class="card" style="text-align:center">
       <div class="avatar" id="profileAvatar" style="width:80px;height:80px;font-size:32px;margin:0 auto 12px"></div>
       <h2 id="profileName" style="font-size:20px;font-weight:700">—</h2>
@@ -41,8 +39,6 @@
       <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
       <button class="btn btn-danger btn-sm" onclick="logout()"><i class="ti ti-logout"></i> تسجيل الخروج</button>
     </div>
-
-    <!-- Info -->
     <div>
       <div class="card" style="margin-bottom:16px">
         <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">معلومات الحساب</h3>
@@ -59,33 +55,29 @@
 </div>
 </div>
 <div id="notification" class="notification hidden"></div>
-<script>try{var u=JSON.parse(localStorage.getItem('edu_user'));if(u&&u.uid)currentUser=u}catch(e){}</script>
+<script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="../js/app.js"></script>
 <script>
-function init(){
-  if(!currentUser){window.location.href='../index.html';return}
-  document.getElementById('userName').textContent=currentUser.name;
-  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
-  document.getElementById('profileName').textContent=currentUser.name;
-  document.getElementById('profileAvatar').textContent=currentUser.name.substring(0,2);
-  document.getElementById('profileRole').textContent=currentUser.role==='teacher'?'معلم':'طالب';
-  document.getElementById('profileBadge').textContent=currentUser.role==='teacher'?'معلم':'طالب';
-  document.getElementById('profName').value=currentUser.name;
-  document.getElementById('profRole').value=currentUser.role==='teacher'?'معلم':'طالب';
-  // Load email from auth
-  if(auth.currentUser) document.getElementById('profEmail').value=auth.currentUser.email;
-  // Load stats
-  getClassRef().onSnapshot(snap=>{
-    const cs=snap.docs.map(d=>({id:d.id,...d.data()}));
-    const totalTasks=cs.reduce((s,c)=>(c.assignments_data||[]).length+s,0);
-    const doneTasks=cs.reduce((s,c)=>(c.assignments_data||[]).filter(a=>a.status==='done').length+s,0);
-    document.getElementById('profStats').innerHTML=`
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
-        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--primary)">${cs.length}</div><div style="font-size:13px;color:var(--text2)">صفوف مسجلة</div></div>
-        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--green)">${totalTasks}</div><div style="font-size:13px;color:var(--text2)">إجمالي المهام</div></div>
-        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--purple)">${doneTasks}</div><div style="font-size:13px;color:var(--text2)">مهام مكتملة</div></div>
-        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--orange)">${totalTasks-doneTasks}</div><div style="font-size:13px;color:var(--text2)">مهام معلقة</div></div>
-      </div>`;
+function init() {
+  if (!currentUser) { window.location.href = '../index.html'; return; }
+  document.getElementById('userName').textContent = currentUser.name;
+  document.getElementById('userAvatar').textContent = currentUser.name.substring(0, 2);
+  document.getElementById('profileName').textContent = currentUser.name;
+  document.getElementById('profileAvatar').textContent = currentUser.name.substring(0, 2);
+  document.getElementById('profileRole').textContent = currentUser.role === 'teacher' ? 'معلم' : 'طالب';
+  document.getElementById('profileBadge').textContent = currentUser.role === 'teacher' ? 'معلم' : 'طالب';
+  document.getElementById('profName').value = currentUser.name;
+  document.getElementById('profRole').value = currentUser.role === 'teacher' ? 'معلم' : 'طالب';
+  if (auth.currentUser) document.getElementById('profEmail').value = auth.currentUser.email;
+  getClassRef().onSnapshot(function(snap) {
+    var cs = snap.docs.map(function(d) { return {id: d.id, ...d.data()}; });
+    var totalTasks = cs.reduce(function(s, c) { return (c.assignments_data || []).length + s; }, 0);
+    var doneTasks = cs.reduce(function(s, c) { return (c.assignments_data || []).filter(function(a) { return a.status === 'done'; }).length + s; }, 0);
+    document.getElementById('profStats').innerHTML = '<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">' +
+      '<div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--primary)">' + cs.length + '</div><div style="font-size:13px;color:var(--text2)">صفوف مسجلة</div></div>' +
+      '<div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--green)">' + totalTasks + '</div><div style="font-size:13px;color:var(--text2)">إجمالي المهام</div></div>' +
+      '<div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--purple)">' + doneTasks + '</div><div style="font-size:13px;color:var(--text2)">مهام مكتملة</div></div>' +
+      '<div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--orange)">' + (totalTasks - doneTasks) + '</div><div style="font-size:13px;color:var(--text2)">مهام معلقة</div></div></div>';
   });
 }
 init();

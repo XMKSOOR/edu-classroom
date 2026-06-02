@@ -1,4 +1,4 @@
-if(!firebase.apps.length){
+if (!firebase.apps.length) {
   firebase.initializeApp({
     apiKey: "AIzaSyACPGcCa9V0IhjMJASYehP6NBR45IZ63Fw",
     authDomain: "edu-classroom-a2b8d.firebaseapp.com",
