@@ -80,10 +80,33 @@ auth.onAuthStateChanged(user=>{
     });
   } else {
     currentUser=null;
-    localStorage.removeItem('edu_user');
     const pth=window.location.pathname.replace(/\/+$/,'');
-    if(!pth.includes('index.html')&&pth!==''&&pth!=='/'&&!pth.endsWith('edu-classroom')&&!pth.endsWith('edu-platform')){
-      window.location.href='index.html';
+    const onLoginPage=pth.includes('index.html')||pth===''||pth==='/'||pth.endsWith('edu-classroom')||pth.endsWith('edu-platform');
+    if(!onLoginPage){
+      // If we just logged in but persistence hasn't caught up yet, wait
+      if(localStorage.getItem('edu_just_logged_in')){
+        let tries=0;
+        const iv=setInterval(()=>{
+          tries++;
+          if(auth.currentUser){
+            clearInterval(iv);
+            localStorage.removeItem('edu_just_logged_in');
+            db.collection('users').doc(auth.currentUser.uid).get().then(snap=>{
+              const data=snap.data()||{role:'student',name:auth.currentUser.displayName||'مستخدم'};
+              currentUser={uid:auth.currentUser.uid,name:data.name,role:data.role};
+              localStorage.setItem('edu_user',JSON.stringify(currentUser));
+            });
+          } else if(tries>10){
+            clearInterval(iv);
+            localStorage.removeItem('edu_just_logged_in');
+            localStorage.removeItem('edu_user');
+            window.location.href='index.html';
+          }
+        },500);
+      } else {
+        localStorage.removeItem('edu_user');
+        window.location.href='index.html';
+      }
     }
   }
 });
