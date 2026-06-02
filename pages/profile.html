@@ -15,46 +15,51 @@
 </head>
 <body>
 <div class="app-wrapper">
-<div class="topbar">
-  <a href="../dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
-  <div class="topbar-center">
-    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home"></i><span> الرئيسية</span></a>
-    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar"></i><span> التقويم</span></a>
-    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
-  </div>
+
+<header class="topbar">
+  <a href="../dashboard.html" class="logo"><i class="ti ti-school" aria-hidden="true"></i><span>المدرسة النظامية</span></a>
+  <nav class="topbar-center" aria-label="التنقل الرئيسي">
+    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home" aria-hidden="true"></i><span> الرئيسية</span></a>
+    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar" aria-hidden="true"></i><span> التقويم</span></a>
+    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar" aria-hidden="true"></i><span> الدرجات</span></a>
+  </nav>
   <div class="topbar-left">
-    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
-    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar">...</div><span id="userName">جاري التحميل...</span></a>
-    <button class="btn-icon" onclick="logout()"><i class="ti ti-logout"></i></button>
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')" aria-label="الإشعارات"><i class="ti ti-bell" aria-hidden="true"></i></button>
+    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar" aria-hidden="true">...</div><span id="userName">جاري التحميل...</span></a>
+    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج" aria-label="تسجيل الخروج"><i class="ti ti-logout" aria-hidden="true"></i></button>
   </div>
-</div>
-<div class="main-content">
+</header>
+
+<main class="main-content">
   <div class="section-header"><span>الملف الشخصي</span></div>
   <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px">
-    <div class="card" style="text-align:center">
-      <div class="avatar" id="profileAvatar" style="width:80px;height:80px;font-size:32px;margin:0 auto 12px"></div>
+    <section class="card" style="text-align:center" aria-label="صورة الملف">
+      <figure class="avatar" id="profileAvatar" style="width:80px;height:80px;font-size:32px;margin:0 auto 12px" aria-label="الصورة الرمزية">...</figure>
       <h2 id="profileName" style="font-size:20px;font-weight:700">—</h2>
       <p id="profileRole" style="font-size:14px;color:var(--text2);margin:4px 0 16px">—</p>
       <span id="profileBadge" class="person-role-badge" style="background:var(--primary-light);color:var(--primary);padding:4px 16px;font-size:13px">—</span>
       <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
-      <button class="btn btn-danger btn-sm" onclick="logout()"><i class="ti ti-logout"></i> تسجيل الخروج</button>
-    </div>
+      <button class="btn btn-danger btn-sm" onclick="logout()"><i class="ti ti-logout" aria-hidden="true"></i> تسجيل الخروج</button>
+    </section>
     <div>
-      <div class="card" style="margin-bottom:16px">
+      <article class="card" style="margin-bottom:16px">
         <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">معلومات الحساب</h3>
-        <div class="form-group"><label>الاسم الكامل</label><input id="profName" disabled></div>
-        <div class="form-group"><label>البريد الإلكتروني</label><input id="profEmail" disabled></div>
-        <div class="form-group"><label>الدور</label><input id="profRole" disabled></div>
-      </div>
-      <div class="card">
+        <div class="form-group"><label for="profName">الاسم الكامل</label><input id="profName" disabled></div>
+        <div class="form-group"><label for="profEmail">البريد الإلكتروني</label><input id="profEmail" disabled></div>
+        <div class="form-group"><label for="profRole">الدور</label><input id="profRole" disabled></div>
+      </article>
+      <article class="card">
         <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">إحصائيات سريعة</h3>
-        <div id="profStats"></div>
-      </div>
+        <section id="profStats" aria-label="إحصائيات المستخدم"></section>
+      </article>
     </div>
   </div>
+</main>
+
 </div>
-</div>
-<div id="notification" class="notification hidden"></div>
+
+<div id="notification" class="notification hidden" role="alert" aria-live="polite"></div>
+
 <script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="../js/app.js"></script>
 <script>

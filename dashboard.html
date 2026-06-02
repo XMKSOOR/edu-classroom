@@ -16,64 +16,72 @@
 <body>
 <div class="app-wrapper">
 
-<div class="topbar">
-  <a href="dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
-  <div class="topbar-center">
-    <a href="dashboard.html" class="nav-tab active"><i class="ti ti-home"></i><span> الرئيسية</span></a>
-    <a href="pages/calendar.html" class="nav-tab"><i class="ti ti-calendar"></i><span> التقويم</span></a>
-    <a href="pages/grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
-  </div>
+<header class="topbar">
+  <a href="dashboard.html" class="logo"><i class="ti ti-school" aria-hidden="true"></i><span>المدرسة النظامية</span></a>
+  <nav class="topbar-center" aria-label="التنقل الرئيسي">
+    <a href="dashboard.html" class="nav-tab active"><i class="ti ti-home" aria-hidden="true"></i><span> الرئيسية</span></a>
+    <a href="pages/calendar.html" class="nav-tab"><i class="ti ti-calendar" aria-hidden="true"></i><span> التقويم</span></a>
+    <a href="pages/grades.html" class="nav-tab"><i class="ti ti-chart-bar" aria-hidden="true"></i><span> الدرجات</span></a>
+  </nav>
   <div class="topbar-left">
-    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')" aria-label="الإشعارات"><i class="ti ti-bell"></i></button>
     <a href="pages/profile.html" class="user-btn" id="userBtn">
-      <div class="avatar" id="userAvatar">...</div>
+      <div class="avatar" id="userAvatar" aria-hidden="true">...</div>
       <span id="userName">جاري التحميل...</span>
     </a>
-    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج"><i class="ti ti-logout"></i></button>
+    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج" aria-label="تسجيل الخروج"><i class="ti ti-logout"></i></button>
   </div>
-</div>
+</header>
 
-<div class="main-content">
-  <div class="join-banner">
+<main class="main-content">
+  <section class="join-banner" aria-label="الانضمام إلى صف">
     <div>
       <h2>مرحباً بك في المدرسة النظامية 🎓</h2>
       <p id="welcomeMsg">انضم إلى صفك الدراسي وابدأ رحلة تعلمك اليوم</p>
     </div>
     <div class="join-form">
-      <input class="join-input" id="joinCode" placeholder="أدخل رمز الصف..." maxlength="7">
-      <button class="btn btn-primary" style="background:#fff;color:var(--primary)" onclick="joinClass()"><i class="ti ti-plus"></i> انضم الآن</button>
+      <input class="join-input" id="joinCode" placeholder="أدخل رمز الصف..." maxlength="7" aria-label="رمز الصف">
+      <button class="btn btn-primary" style="background:#fff;color:var(--primary)" onclick="joinClass()"><i class="ti ti-plus" aria-hidden="true"></i> انضم الآن</button>
     </div>
-  </div>
-  <div class="stats-grid" id="statsGrid"></div>
-  <div class="section-header">
-    <span>صفوفي الدراسية</span>
-    <button class="btn btn-primary btn-sm" onclick="openModal('createClass')"><i class="ti ti-plus"></i> إنشاء صف</button>
-  </div>
-  <div class="classes-grid" id="classesGrid"></div>
-  <div style="margin-top:32px">
+  </section>
+
+  <section aria-label="إحصائيات سريعة">
+    <div class="stats-grid" id="statsGrid"></div>
+  </section>
+
+  <section aria-label="الصفوف الدراسية">
+    <div class="section-header">
+      <span>صفوفي الدراسية</span>
+      <button class="btn btn-primary btn-sm" onclick="document.getElementById('modal-createClass').showModal()"><i class="ti ti-plus" aria-hidden="true"></i> إنشاء صف</button>
+    </div>
+    <div class="classes-grid" id="classesGrid"></div>
+  </section>
+
+  <section aria-label="آخر النشاطات" style="margin-top:32px">
     <div class="section-header"><span>آخر النشاطات</span></div>
-    <div class="card" id="recentActivity">
+    <article class="card" id="recentActivity">
       <div class="empty-state"><i class="ti ti-activity"></i><h3>لا توجد نشاطات حديثة</h3><p>سيتم عرض آخر التحديثات هنا</p></div>
-    </div>
-  </div>
-</div>
+    </article>
+  </section>
+</main>
+
 </div>
 
-<div id="notification" class="notification hidden"></div>
+<div id="notification" class="notification hidden" role="alert" aria-live="polite"></div>
 
-<div id="modal-createClass" class="modal-overlay hidden">
+<dialog id="modal-createClass">
   <div class="modal">
     <h2>إنشاء صف جديد</h2>
     <p>أنشئ صفاً دراسياً وادعُ طلابك للانضمام برمز خاص</p>
-    <div class="form-group"><label>اسم الصف</label><input id="cc-name" placeholder="مثال: رياضيات — الثالث متوسط"></div>
-    <div class="form-group"><label>المادة</label><input id="cc-subject" placeholder="مثال: الرياضيات"></div>
-    <div class="form-group"><label>الوصف (اختياري)</label><textarea id="cc-desc" placeholder="وصف مختصر للصف..."></textarea></div>
+    <div class="form-group"><label for="cc-name">اسم الصف</label><input id="cc-name" placeholder="مثال: رياضيات — الثالث متوسط" required></div>
+    <div class="form-group"><label for="cc-subject">المادة</label><input id="cc-subject" placeholder="مثال: الرياضيات" required></div>
+    <div class="form-group"><label for="cc-desc">الوصف (اختياري)</label><textarea id="cc-desc" placeholder="وصف مختصر للصف..."></textarea></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('createClass')">إلغاء</button>
-      <button class="btn btn-primary" onclick="createClass()"><i class="ti ti-plus"></i> إنشاء</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-createClass').close()">إلغاء</button>
+      <button class="btn btn-primary" onclick="createClass()"><i class="ti ti-plus" aria-hidden="true"></i> إنشاء</button>
     </div>
   </div>
-</div>
+</dialog>
 
 <script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="js/app.js"></script>
@@ -102,22 +110,22 @@ function renderStats() {
   var tasks = _cloudClasses.reduce(function(s, c) { return (c.assignments_data || []).length + s; }, 0);
   var lessons = _cloudClasses.reduce(function(s, c) { return (c.lessons_data || []).length + s; }, 0);
   var pending = _cloudClasses.reduce(function(s, c) { return (c.assignments_data || []).filter(function(a) { return a.status === 'pending'; }).length + s; }, 0);
-  g.innerHTML = '<div class="stat-card"><div class="stat-card-icon" style="background:var(--primary-light);color:var(--primary)"><i class="ti ti-school"></i></div><div class="stat-card-info"><h3>' + total + '</h3><p>الصفوف المسجلة</p></div></div>' +
-    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-clipboard"></i></div><div class="stat-card-info"><h3>' + tasks + '</h3><p>إجمالي المهام</p></div></div>' +
-    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-book"></i></div><div class="stat-card-info"><h3>' + lessons + '</h3><p>الدروس المتاحة</p></div></div>' +
-    '<div class="stat-card"><div class="stat-card-icon" style="background:var(--orange-light);color:var(--orange)"><i class="ti ti-clock"></i></div><div class="stat-card-info"><h3>' + pending + '</h3><p>مهام معلقة</p></div></div>';
+  g.innerHTML = '<article class="stat-card"><div class="stat-card-icon" style="background:var(--primary-light);color:var(--primary)"><i class="ti ti-school"></i></div><div class="stat-card-info"><h3>' + total + '</h3><p>الصفوف المسجلة</p></div></article>' +
+    '<article class="stat-card"><div class="stat-card-icon" style="background:var(--green-light);color:var(--green)"><i class="ti ti-clipboard"></i></div><div class="stat-card-info"><h3>' + tasks + '</h3><p>إجمالي المهام</p></div></article>' +
+    '<article class="stat-card"><div class="stat-card-icon" style="background:var(--purple-light);color:var(--purple)"><i class="ti ti-book"></i></div><div class="stat-card-info"><h3>' + lessons + '</h3><p>الدروس المتاحة</p></div></article>' +
+    '<article class="stat-card"><div class="stat-card-icon" style="background:var(--orange-light);color:var(--orange)"><i class="ti ti-clock"></i></div><div class="stat-card-info"><h3>' + pending + '</h3><p>مهام معلقة</p></div></article>';
 }
 
 function renderClassCards() {
   var g = document.getElementById('classesGrid');
   if (!_cloudClasses.length) {
-    g.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><i class="ti ti-school"></i><h3>لا توجد صفوف بعد</h3><p>أنشئ صفاً جديداً أو انضم إلى صف باستخدام رمز الصف</p><button class="btn btn-primary" onclick="openModal(\'createClass\')"><i class="ti ti-plus"></i> إنشاء صف</button></div></div>';
+    g.innerHTML = '<div style="grid-column:1/-1"><div class="empty-state"><i class="ti ti-school"></i><h3>لا توجد صفوف بعد</h3><p>أنشئ صفاً جديداً أو انضم إلى صف باستخدام رمز الصف</p><button class="btn btn-primary" onclick="document.getElementById(\'modal-createClass\').showModal()"><i class="ti ti-plus"></i> إنشاء صف</button></div></div>';
     return;
   }
   g.innerHTML = _cloudClasses.map(function(c) {
     var col = COLORS[c.color] || COLORS[0];
-    var pending = (c.assignments_data || []).filter(function(a) { return a.status === 'pending'; }).length;
-    return '<div class="class-card" onclick="openClassDetail(\'' + c.id + '\')">' +
+    var pend = (c.assignments_data || []).filter(function(a) { return a.status === 'pending'; }).length;
+    return '<article class="class-card" onclick="openClassDetail(\'' + c.id + '\')">' +
       '<div class="class-header" style="background:' + col.grad + '">' +
       '<div class="class-icon-badge"><i class="ti ti-book"></i></div>' +
       '<div class="class-subject-badge">' + (c.subject || 'عام') + '</div>' +
@@ -125,12 +133,12 @@ function renderClassCards() {
       '<div class="class-body"><div class="class-meta">' +
       '<span><i class="ti ti-users"></i> ' + (c.students || 0) + ' طالب</span>' +
       '<span><i class="ti ti-clipboard"></i> ' + (c.assignments_data || []).length + ' مهام</span>' +
-      (pending ? '<span style="color:var(--orange)"><i class="ti ti-clock"></i> ' + pending + ' معلقة</span>' : '') +
+      (pend ? '<span style="color:var(--orange)"><i class="ti ti-clock"></i> ' + pend + ' معلقة</span>' : '') +
       '</div><div class="class-footer"><span class="join-code">' + (c.code || '—') + '</span>' +
       '<div style="display:flex;gap:6px">' +
       '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openClassDetail(\'' + c.id + '\')">فتح الصف</button>' +
       (currentUser && currentUser.role === 'teacher' ? '<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass(\'' + c.id + '\')" title="حذف"><i class="ti ti-trash"></i></button>' : '') +
-      '</div></div><div class="progress-bar"><div class="progress-fill" style="width:' + (c.progress || 0) + '%;background:' + col.bg + '"></div></div></div></div>';
+      '</div></div><div class="progress-bar"><div class="progress-fill" style="width:' + (c.progress || 0) + '%;background:' + col.bg + '"></div></div></div></article>';
   }).join('');
 }
 
@@ -174,18 +182,20 @@ function createClass() {
     assignments_data: [], lessons_data: [], stream: [], people: [],
     members: [currentUser.uid], createdAt: Date.now()
   }).then(function(ref) {
-    closeModal('createClass');
+    document.getElementById('modal-createClass').close();
     document.getElementById('cc-name').value = '';
     document.getElementById('cc-subject').value = '';
     showNotification('تم إنشاء الصف! رمز الصف: ' + code + ' ✅');
   }).catch(function(e) { showNotification(e.message); });
 }
 
-function openModal(id) { document.getElementById('modal-' + id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById('modal-' + id).classList.add('hidden'); }
-document.querySelectorAll('.modal-overlay').forEach(function(m) {
-  m.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+// Dialog close on backdrop click
+document.querySelectorAll('dialog').forEach(function(d) {
+  d.addEventListener('click', function(e) { if (e.target === this) this.close(); });
 });
+
+// Enter key on join input
+document.getElementById('joinCode').onkeydown = function(e) { if (e.key === 'Enter') joinClass(); };
 
 renderDashboard();
 </script>

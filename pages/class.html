@@ -16,66 +16,66 @@
 <body>
 <div class="app-wrapper">
 
-<div class="topbar" style="display:none" id="topbar">
-  <a href="../dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
-  <div class="topbar-center">
-    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home"></i><span> الرئيسية</span></a>
-    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar"></i><span> التقويم</span></a>
-    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
-  </div>
+<header class="topbar" style="display:none" id="topbar">
+  <a href="../dashboard.html" class="logo"><i class="ti ti-school" aria-hidden="true"></i><span>المدرسة النظامية</span></a>
+  <nav class="topbar-center" aria-label="التنقل الرئيسي">
+    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home" aria-hidden="true"></i><span> الرئيسية</span></a>
+    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar" aria-hidden="true"></i><span> التقويم</span></a>
+    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar" aria-hidden="true"></i><span> الدرجات</span></a>
+  </nav>
   <div class="topbar-left">
-    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
-    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar">...</div><span id="userName">جاري التحميل...</span></a>
-    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج"><i class="ti ti-logout"></i></button>
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')" aria-label="الإشعارات"><i class="ti ti-bell"></i></button>
+    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar" aria-hidden="true">...</div><span id="userName">جاري التحميل...</span></a>
+    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج" aria-label="تسجيل الخروج"><i class="ti ti-logout"></i></button>
   </div>
-</div>
+</header>
 
-<div class="main-content">
+<main class="main-content">
   <div id="loadingView" class="loading-spinner"><i class="ti ti-loader"></i></div>
   <div id="classContent" style="display:none">
-    <button class="back-btn" onclick="window.location.href='../dashboard.html'"><i class="ti ti-arrow-right"></i> العودة للصفوف</button>
-    <div id="classHero" class="class-hero"></div>
-    <div class="tabs-bar">
-      <button class="tab active" onclick="switchTab('stream')">الإعلانات</button>
-      <button class="tab" onclick="switchTab('assignments')">المهام</button>
-      <button class="tab" onclick="switchTab('lessons')">الدروس</button>
-      <button class="tab" onclick="switchTab('people')">الأعضاء</button>
+    <button class="back-btn" onclick="window.location.href='../dashboard.html'" aria-label="العودة للصفوف"><i class="ti ti-arrow-right"></i> العودة للصفوف</button>
+    <section id="classHero" class="class-hero" aria-label="معلومات الصف"></section>
+    <div class="tabs-bar" role="tablist" aria-label="أقسام الصف">
+      <button class="tab active" role="tab" aria-selected="true" aria-controls="tab-stream" id="tab-btn-stream" onclick="switchTab('stream')">الإعلانات</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="tab-assignments" id="tab-btn-assignments" onclick="switchTab('assignments')">المهام</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="tab-lessons" id="tab-btn-lessons" onclick="switchTab('lessons')">الدروس</button>
+      <button class="tab" role="tab" aria-selected="false" aria-controls="tab-people" id="tab-btn-people" onclick="switchTab('people')">الأعضاء</button>
     </div>
-    <div id="tab-stream" class="tab-content"></div>
-    <div id="tab-assignments" class="tab-content" style="display:none"></div>
-    <div id="tab-lessons" class="tab-content" style="display:none"></div>
-    <div id="tab-people" class="tab-content" style="display:none"></div>
+    <div id="tab-stream" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-stream"></div>
+    <div id="tab-assignments" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-assignments" hidden></div>
+    <div id="tab-lessons" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-lessons" hidden></div>
+    <div id="tab-people" class="tab-content" role="tabpanel" aria-labelledby="tab-btn-people" hidden></div>
   </div>
-</div>
+</main>
+
 </div>
 
-<div id="notification" class="notification hidden"></div>
+<div id="notification" class="notification hidden" role="alert" aria-live="polite"></div>
 
-<!-- MODALS -->
-<div id="modal-submitAssign" class="modal-overlay hidden">
+<dialog id="modal-submitAssign">
   <div class="modal">
     <h2>تسليم المهمة</h2>
     <p id="submitAssignTitle" style="font-weight:600;font-size:14px;color:var(--text1);margin-bottom:16px"></p>
     <div class="upload-area" onclick="document.getElementById('fileInput').click()">
-      <i class="ti ti-upload" id="uploadIcon"></i>
+      <i class="ti ti-upload" id="uploadIcon" aria-hidden="true"></i>
       <p id="uploadText">انقر لرفع ملف المهمة</p>
       <p style="font-size:11px;color:var(--text3);margin-top:4px">PDF, Word, أو صور</p>
     </div>
     <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" style="display:none" onchange="handleFileSelect(this)">
-    <div class="form-group" style="margin-top:16px"><label>ملاحظة للمعلم (اختياري)</label><textarea id="submitNote" placeholder="اكتب ملاحظتك هنا..."></textarea></div>
+    <div class="form-group" style="margin-top:16px"><label for="submitNote">ملاحظة للمعلم (اختياري)</label><textarea id="submitNote" placeholder="اكتب ملاحظتك هنا..."></textarea></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('submitAssign')">إلغاء</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-submitAssign').close()">إلغاء</button>
       <button class="btn btn-success" id="submitBtn" onclick="submitAssignment()"><i class="ti ti-send"></i> تسليم</button>
     </div>
   </div>
-</div>
+</dialog>
 
-<div id="modal-addLesson" class="modal-overlay hidden">
+<dialog id="modal-addLesson">
   <div class="modal">
     <h2>ربط درس جديد</h2>
     <p>أضف رابط درس أو مادة تعليمية لهذا الصف</p>
-    <div class="form-group"><label>عنوان الدرس</label><input id="ls-title" placeholder="مثال: درس المعادلات التربيعية"></div>
-    <div class="form-group"><label>نوع المحتوى</label>
+    <div class="form-group"><label for="ls-title">عنوان الدرس</label><input id="ls-title" placeholder="مثال: درس المعادلات التربيعية" required></div>
+    <div class="form-group"><label for="ls-type">نوع المحتوى</label>
       <select id="ls-type">
         <option value="video">فيديو يوتيوب</option>
         <option value="doc">مستند / PDF</option>
@@ -83,58 +83,58 @@
         <option value="link">رابط خارجي</option>
       </select>
     </div>
-    <div class="form-group"><label>الرابط</label><input id="ls-url" placeholder="https://..."></div>
+    <div class="form-group"><label for="ls-url">الرابط</label><input id="ls-url" placeholder="https://..."></div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('addLesson')">إلغاء</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-addLesson').close()">إلغاء</button>
       <button class="btn btn-primary" id="addLessonBtn" onclick="addLesson()"><i class="ti ti-link"></i> إضافة الدرس</button>
     </div>
   </div>
-</div>
+</dialog>
 
-<div id="modal-addPost" class="modal-overlay hidden">
+<dialog id="modal-addPost">
   <div class="modal">
     <h2>إضافة إعلان</h2>
     <p>شارك إعلاناً مع طلاب الصف</p>
-    <div class="form-group"><label>نص الإعلان</label><textarea id="postText" placeholder="اكتب إعلانك هنا..." style="min-height:100px"></textarea></div>
+    <div class="form-group"><label for="postText">نص الإعلان</label><textarea id="postText" placeholder="اكتب إعلانك هنا..." style="min-height:100px" required></textarea></div>
     <div class="form-group"><label>مرفق (اختياري)</label>
       <div class="upload-area" onclick="document.getElementById('postFile').click()" style="padding:14px">
-        <i class="ti ti-paperclip" id="postIcon" style="font-size:20px"></i>
+        <i class="ti ti-paperclip" id="postIcon" style="font-size:20px" aria-hidden="true"></i>
         <p id="postFileName" style="font-size:12px">إرفاق ملف</p>
       </div>
       <input type="file" id="postFile" style="display:none" onchange="handlePostFile(this)">
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('addPost')">إلغاء</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-addPost').close()">إلغاء</button>
       <button class="btn btn-primary" id="publishBtn" onclick="addPost()"><i class="ti ti-send"></i> نشر</button>
     </div>
   </div>
-</div>
+</dialog>
 
-<div id="modal-createAssign" class="modal-overlay hidden">
+<dialog id="modal-createAssign">
   <div class="modal">
     <h2>إضافة مهمة جديدة</h2>
     <p>أنشئ واجباً لطلاب هذا الصف</p>
-    <div class="form-group"><label>عنوان المهمة</label><input id="ca-title" placeholder="مثال: واجب المعادلات التربيعية"></div>
-    <div class="form-group"><label>الوصف</label><textarea id="ca-desc" placeholder="وصف المهمة والتعليمات..."></textarea></div>
+    <div class="form-group"><label for="ca-title">عنوان المهمة</label><input id="ca-title" placeholder="مثال: واجب المعادلات التربيعية" required></div>
+    <div class="form-group"><label for="ca-desc">الوصف</label><textarea id="ca-desc" placeholder="وصف المهمة والتعليمات..."></textarea></div>
     <div class="form-row">
-      <div class="form-group"><label>تاريخ التسليم</label><input id="ca-due" type="date" style="font-family:'Cairo',sans-serif"></div>
-      <div class="form-group"><label>الدرجة</label><input id="ca-points" type="number" value="20" min="1" max="100"></div>
+      <div class="form-group"><label for="ca-due">تاريخ التسليم</label><input id="ca-due" type="date" style="font-family:'Cairo',sans-serif" required></div>
+      <div class="form-group"><label for="ca-points">الدرجة</label><input id="ca-points" type="number" value="20" min="1" max="100"></div>
     </div>
     <div class="modal-actions">
-      <button class="btn btn-secondary" onclick="closeModal('createAssign')">إلغاء</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-createAssign').close()">إلغاء</button>
       <button class="btn btn-primary" onclick="createAssignment()"><i class="ti ti-plus"></i> إنشاء</button>
     </div>
   </div>
-</div>
+</dialog>
 
-<div id="modal-viewSubs" class="modal-overlay hidden">
+<dialog id="modal-viewSubs">
   <div class="modal" style="max-width:600px">
     <h2>تسليمات المهمة</h2>
     <p id="viewSubTitle" style="font-weight:600;font-size:14px;color:var(--text1);margin-bottom:16px"></p>
     <div id="submissionsList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto"></div>
-    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('viewSubs')">إغلاق</button></div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="document.getElementById('modal-viewSubs').close()">إغلاق</button></div>
   </div>
-</div>
+</dialog>
 
 <script>try { var u = JSON.parse(localStorage.getItem('edu_user')); if (u && u.uid) currentUser = u; } catch (e) {}</script>
 <script src="../js/app.js"></script>
@@ -173,13 +173,12 @@ function renderHero() {
 }
 
 function switchTab(name) {
-  document.querySelectorAll('.tab-content').forEach(function(t) { t.style.display = 'none'; });
-  document.querySelectorAll('.tab').forEach(function(t) { t.classList.remove('active'); });
-  var tabs = document.querySelectorAll('.tab');
-  for (var i = 0; i < tabs.length; i++) {
-    if (tabs[i].getAttribute('onclick').indexOf("'" + name + "'") >= 0) { tabs[i].classList.add('active'); break; }
-  }
-  document.getElementById('tab-' + name).style.display = 'block';
+  document.querySelectorAll('.tab-content').forEach(function(t) { t.style.display = 'none'; t.setAttribute('hidden', ''); });
+  document.querySelectorAll('[role=tab]').forEach(function(t) { t.classList.remove('active'); t.setAttribute('aria-selected', 'false'); });
+  var tab = document.getElementById('tab-btn-' + name);
+  if (tab) { tab.classList.add('active'); tab.setAttribute('aria-selected', 'true'); }
+  var panel = document.getElementById('tab-' + name);
+  if (panel) { panel.style.display = 'block'; panel.removeAttribute('hidden'); }
   var c = _currentClass;
   if (name === 'stream') renderStream(c);
   if (name === 'assignments') renderAssignments(c);
@@ -188,7 +187,7 @@ function switchTab(name) {
 }
 
 function renderActiveTab() {
-  var active = document.querySelector('.tab.active');
+  var active = document.querySelector('[role=tab].active');
   var onclick = active ? active.getAttribute('onclick') : '';
   var m = onclick.match(/'(\w+)'/);
   switchTab(m ? m[1] : 'stream');
@@ -197,18 +196,18 @@ function renderActiveTab() {
 function renderStream(c) {
   var t = document.getElementById('tab-stream');
   var isTeacher = currentUser && currentUser.role === 'teacher';
-  t.innerHTML = (isTeacher ? '<div class="stream-post" style="border:2px dashed var(--border);background:var(--surface2);cursor:pointer" onclick="openModal(\'addPost\')">' +
+  t.innerHTML = (isTeacher ? '<div class="stream-post" style="border:2px dashed var(--border);background:var(--surface2);cursor:pointer" onclick="document.getElementById(\'modal-addPost\').showModal()">' +
     '<div style="display:flex;align-items:center;gap:10px;color:var(--text3)">' +
     '<div class="avatar" style="background:var(--primary);color:#fff">' + currentUser.name.substring(0, 2) + '</div>' +
     '<span style="font-size:14px">شارك إعلاناً مع الصف...</span></div></div>' : '') +
     (c.stream || []).map(function(p) {
-      return '<div class="stream-post"><div class="post-header">' +
+      return '<article class="stream-post"><header class="post-header">' +
         '<div class="avatar" style="background:' + (p.avatarColor || 'var(--primary)') + '">' + (p.avatar || (p.author ? p.author.substring(0, 2) : '?')) + '</div>' +
         '<div><div style="font-size:14px;font-weight:600">' + (p.author || '') + '</div></div>' +
-        '<span class="post-time">' + (p.time || '') + '</span></div>' +
+        '<time class="post-time" datetime="' + (p.iso || '') + '">' + (p.time || '') + '</time></header>' +
         '<p class="post-text">' + (p.text || '') + '</p>' +
         (p.attachment ? '<div class="post-attachment" onclick="window.open(\'' + p.attachment.url + '\',\'_blank\')"><i class="ti ' + (p.attachment.icon || 'ti-file') + '" style="font-size:20px;color:var(--primary)"></i><span>' + p.attachment.name + '</span><i class="ti ti-download" style="margin-right:auto;color:var(--text3)"></i></div>' : '') +
-        '</div>';
+        '</article>';
     }).join('');
   if (!c.stream || (!c.stream.length && !isTeacher)) t.innerHTML = '<div class="empty-state"><i class="ti ti-message"></i><h3>لا توجد إعلانات بعد</h3><p>سيتم عرض إعلانات المعلم هنا</p></div>';
 }
@@ -220,19 +219,19 @@ function renderAssignments(c) {
   var labels = {pending: 'قيد التسليم', done: 'مُسلَّم', late: 'متأخر'};
   t.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
     '<span style="font-size:15px;font-weight:600">المهام والواجبات</span>' +
-    (isTeacher ? '<button class="btn btn-primary btn-sm" onclick="openModal(\'createAssign\')"><i class="ti ti-plus"></i> إضافة مهمة</button>' : '') +
+    (isTeacher ? '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'modal-createAssign\').showModal()"><i class="ti ti-plus"></i> إضافة مهمة</button>' : '') +
     '</div><div class="assignments-list">' +
     ((c.assignments_data || []).map(function(a) {
       var colors = {pending: ['#fff9e6', '#fa7b17'], done: ['#e6f4ea', '#1e8e3e'], late: ['#fce8e6', '#d93025']};
       var sl = colors[a.status] || colors.pending;
-      var click = isTeacher ? "viewSubmissions(" + a.id + ",'" + a.title.replace(/'/g, "\\'") + "')" : "openSubmit(" + a.id + ",'" + a.title.replace(/'/g, "\\'") + "')";
-      return '<div class="assignment-card" onclick="' + click + '">' +
+      var click = isTeacher ? "document.getElementById('modal-viewSubs').showModal();viewSubmissions(" + a.id + ",'" + a.title.replace(/'/g, "\\'") + "')" : "document.getElementById('modal-submitAssign').showModal();openSubmit(" + a.id + ",'" + a.title.replace(/'/g, "\\'") + "')";
+      return '<article class="assignment-card" onclick="' + click + '">' +
         '<div class="assign-icon" style="background:' + sl[0] + ';color:' + sl[1] + '"><i class="ti ' + (icons[a.status] || 'ti-clock') + '"></i></div>' +
         '<div class="assign-info"><h4>' + a.title + '</h4><p>' + (a.desc || '') + '</p></div>' +
         '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">' +
         '<span class="assign-badge" style="background:' + sl[0] + ';color:' + sl[1] + '">' + (labels[a.status] || '') + '</span>' +
-        '<span class="assign-date"><i class="ti ti-calendar" style="font-size:12px"></i> ' + (a.due || '') + '</span>' +
-        '<span style="font-size:12px;color:var(--text3)">' + (a.points || 0) + ' درجة</span></div></div>';
+        '<time class="assign-date" datetime="' + (a.dueISO || '') + '"><i class="ti ti-calendar" style="font-size:12px"></i> ' + (a.due || '') + '</time>' +
+        '<span style="font-size:12px;color:var(--text3)">' + (a.points || 0) + ' درجة</span></div></article>';
     }).join('') || '<div class="empty-state"><i class="ti ti-clipboard"></i><h3>لا توجد مهام بعد</h3></div>') +
     '</div>';
 }
@@ -244,14 +243,14 @@ function renderLessons(c) {
   var isTeacher = currentUser && currentUser.role === 'teacher';
   t.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">' +
     '<span style="font-size:15px;font-weight:600">الدروس والمواد</span>' +
-    (isTeacher ? '<button class="btn btn-primary btn-sm" onclick="openModal(\'addLesson\')"><i class="ti ti-link"></i> ربط درس</button>' : '') +
+    (isTeacher ? '<button class="btn btn-primary btn-sm" onclick="document.getElementById(\'modal-addLesson\').showModal()"><i class="ti ti-link"></i> ربط درس</button>' : '') +
     '</div><div class="lessons-grid">' +
     ((c.lessons_data || []).map(function(l) {
-      return '<div class="lesson-card" onclick="openLesson(\'' + (l.url || '').replace(/'/g, "\\'") + '\',\'' + l.title.replace(/'/g, "\\'") + '\')">' +
+      return '<article class="lesson-card" onclick="openLesson(\'' + (l.url || '').replace(/'/g, "\\'") + '\',\'' + l.title.replace(/'/g, "\\'") + '\')">' +
         '<div class="lesson-thumb" style="background:' + (l.color || 'var(--surface3)') + '"><span style="font-size:42px">' + (l.emoji || '📄') + '</span><span class="lesson-tag">' + (typeLabel[l.type] || 'رابط') + '</span></div>' +
         '<div class="lesson-body"><h4>' + l.title + '</h4><p>' + (l.desc || '') + '</p>' +
-        '<div class="lesson-footer"><span class="lesson-type"><i class="ti ' + (typeIcon[l.type] || 'ti-link') + '" style="font-size:13px"></i> ' + (typeLabel[l.type] || 'رابط') + '</span>' +
-        '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openLesson(\'' + (l.url || '').replace(/'/g, "\\'") + '\',\'' + l.title.replace(/'/g, "\\'") + '\')">فتح</button></div></div></div>';
+        '<footer class="lesson-footer"><span class="lesson-type"><i class="ti ' + (typeIcon[l.type] || 'ti-link') + '" style="font-size:13px"></i> ' + (typeLabel[l.type] || 'رابط') + '</span>' +
+        '<button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openLesson(\'' + (l.url || '').replace(/'/g, "\\'") + '\',\'' + l.title.replace(/'/g, "\\'") + '\')">فتح</button></footer></div></article>';
     }).join('') || '<div class="empty-state"><i class="ti ti-book"></i><h3>لا توجد دروس بعد</h3></div>') +
     '</div>';
 }
@@ -271,14 +270,14 @@ function renderPeople(c) {
     var valid = members.filter(function(m) { return m; });
     var teachers = valid.filter(function(p) { return p.role === 'teacher'; });
     var students = valid.filter(function(p) { return p.role !== 'teacher'; });
-    t.innerHTML = '<div style="margin-bottom:16px">' +
+    t.innerHTML = '<section style="margin-bottom:16px">' +
       '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-check" style="color:var(--primary)"></i> المعلمون</div>' +
-      teachers.map(function(p) { return '<div class="person-card" style="margin-bottom:12px"><div class="person-avatar" style="background:var(--primary);color:#fff">' + p.name.substring(0, 2) + '</div><div class="person-info"><h4>' + p.name + '</h4><p>معلم الصف</p></div><span class="person-role-badge" style="background:var(--primary-light);color:var(--primary)">معلم</span></div>'; }).join('') +
-      '</div><div>' +
+      teachers.map(function(p) { return '<article class="person-card" style="margin-bottom:12px"><div class="person-avatar" style="background:var(--primary);color:#fff">' + p.name.substring(0, 2) + '</div><div class="person-info"><h4>' + p.name + '</h4><p>معلم الصف</p></div><span class="person-role-badge" style="background:var(--primary-light);color:var(--primary)">معلم</span></article>'; }).join('') +
+      '</section><section>' +
       '<div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-users" style="color:var(--green)"></i> الطلاب (' + students.length + ')</div>' +
       '<div class="people-list">' +
-      (students.length ? students.map(function(p) { return '<div class="person-card"><div class="person-avatar" style="background:var(--surface3);color:var(--text1)">' + p.name.substring(0, 2) + '</div><div class="person-info"><h4>' + p.name + '</h4><p>طالب</p></div><span class="person-role-badge" style="background:var(--green-light);color:var(--green)">طالب</span></div>'; }).join('') : '<div class="empty-state"><i class="ti ti-users"></i><h3>لا يوجد أعضاء بعد</h3></div>') +
-      '</div></div>';
+      (students.length ? students.map(function(p) { return '<article class="person-card"><div class="person-avatar" style="background:var(--surface3);color:var(--text1)">' + p.name.substring(0, 2) + '</div><div class="person-info"><h4>' + p.name + '</h4><p>طالب</p></div><span class="person-role-badge" style="background:var(--green-light);color:var(--green)">طالب</span></article>'; }).join('') : '<div class="empty-state"><i class="ti ti-users"></i><h3>لا يوجد أعضاء بعد</h3></div>') +
+      '</div></section>';
   }).catch(function(e) { Logger.error('renderPeople: ' + e.message); });
 }
 
@@ -294,7 +293,7 @@ function handlePostFile(input) {
 function addPost() {
   var text = document.getElementById('postText').value.trim();
   if (!text) { showNotification('اكتب نص الإعلان أولاً'); return; }
-  var post = {id: Date.now(), author: currentUser.name, avatar: currentUser.name.substring(0, 2), avatarColor: '#1a73e8', time: new Date().toLocaleString('ar-SA'), text: text, attachment: null};
+  var post = {id: Date.now(), author: currentUser.name, avatar: currentUser.name.substring(0, 2), avatarColor: '#1a73e8', time: new Date().toLocaleString('ar-SA'), iso: new Date().toISOString(), text: text, attachment: null};
   var doUpdate = function(p) { return getAllClassesRef().doc(_currentClass.id).update({stream: firebase.firestore.FieldValue.arrayUnion(p)}); };
   if (_postFile) {
     document.getElementById('publishBtn').disabled = true;
@@ -302,9 +301,9 @@ function addPost() {
     ref.put(_postFile).then(function(s) { return s.ref.getDownloadURL(); }).then(function(url) {
       post.attachment = {name: _postFile.name, icon: 'ti-file', url: url};
       return doUpdate(post);
-    }).then(function() { closeModal('addPost'); resetPostForm(); showNotification('تم النشر 🎉'); }).catch(function(e) { showNotification(e.message); });
+    }).then(function() { document.getElementById('modal-addPost').close(); resetPostForm(); showNotification('تم النشر 🎉'); }).catch(function(e) { showNotification(e.message); });
   } else {
-    doUpdate(post).then(function() { closeModal('addPost'); resetPostForm(); showNotification('تم النشر 🎉'); }).catch(function(e) { showNotification(e.message); });
+    doUpdate(post).then(function() { document.getElementById('modal-addPost').close(); resetPostForm(); showNotification('تم النشر 🎉'); }).catch(function(e) { showNotification(e.message); });
   }
 }
 
@@ -325,7 +324,6 @@ function openSubmit(id, title) {
   document.getElementById('uploadIcon').style.color = '';
   document.getElementById('uploadText').textContent = 'انقر لرفع ملف المهمة';
   document.getElementById('submitAssignTitle').textContent = title;
-  openModal('submitAssign');
 }
 
 function handleFileSelect(input) {
@@ -353,14 +351,14 @@ function submitAssignment() {
     var note = document.getElementById('submitNote').value.trim();
     var sub = {uid: currentUser.uid, name: currentUser.name, file: url, fileName: _uploadedFile.name, submittedAt: Date.now(), note: note || ''};
     var existing = _currentClass.assignments_data || [];
-    var updated = existing.map(function(a) {
-      if (a.id !== _currentAssignId) return a;
-      var subs = a.submissions || [];
-      return {id: a.id, title: a.title, desc: a.desc, due: a.due, dueISO: a.dueISO, status: 'done', points: a.points, submissions: subs.concat([sub])};
+    var updated = existing.map(function(ax) {
+      if (ax.id !== _currentAssignId) return ax;
+      var subs = ax.submissions || [];
+      return {id: ax.id, title: ax.title, desc: ax.desc, due: ax.due, dueISO: ax.dueISO, status: 'done', points: ax.points, submissions: subs.concat([sub])};
     });
     return getAllClassesRef().doc(_currentClass.id).update({assignments_data: updated});
   }).then(function() {
-    closeModal('submitAssign');
+    document.getElementById('modal-submitAssign').close();
     document.getElementById('submitNote').value = '';
     showNotification('تم تسليم المهمة بنجاح! 🎉');
   }).catch(function(e) { showNotification(e.message); }).finally(function() {
@@ -382,7 +380,7 @@ function createAssignment() {
     assignments_data: firebase.firestore.FieldValue.arrayUnion(assign),
     assignments: firebase.firestore.FieldValue.increment(1)
   }).then(function() {
-    closeModal('createAssign');
+    document.getElementById('modal-createAssign').close();
     document.getElementById('ca-title').value = '';
     document.getElementById('ca-desc').value = '';
     document.getElementById('ca-due').value = '';
@@ -399,13 +397,12 @@ function viewSubmissions(id, title) {
     ? subs.map(function(s) {
         return '<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border-radius:8px">' +
           '<div class="avatar" style="background:var(--primary);color:#fff;width:36px;height:36px;font-size:13px">' + (s.name ? s.name.substring(0, 2) : '?') + '</div>' +
-          '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + (s.name || '') + '</div><div style="font-size:11px;color:var(--text3)">' + (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('ar-SA') : '') + '</div></div>' +
+          '<div style="flex:1"><div style="font-size:14px;font-weight:600">' + (s.name || '') + '</div><time style="font-size:11px;color:var(--text3)" datetime="' + (s.submittedAt ? new Date(s.submittedAt).toISOString() : '') + '">' + (s.submittedAt ? new Date(s.submittedAt).toLocaleDateString('ar-SA') : '') + '</time></div>' +
           (s.file ? '<a href="' + s.file + '" target="_blank" class="btn btn-sm btn-primary"><i class="ti ti-download"></i></a>' : '') +
           (s.note ? '<span style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">' + s.note + '</span>' : '') +
           '</div>';
       }).join('')
     : '<div class="empty-state"><i class="ti ti-inbox"></i><h3>لا توجد تسليمات بعد</h3></div>';
-  openModal('viewSubs');
 }
 
 /* ========== LESSONS ========== */
@@ -429,7 +426,7 @@ function addLesson() {
   }).then(function() {
     document.getElementById('ls-title').value = '';
     document.getElementById('ls-url').value = '';
-    closeModal('addLesson');
+    document.getElementById('modal-addLesson').close();
     showNotification('تم ربط الدرس بنجاح! ✅');
   }).catch(function(e) { showNotification(e.message); }).finally(function() {
     document.getElementById('addLessonBtn').disabled = false;
@@ -437,11 +434,9 @@ function addLesson() {
   });
 }
 
-/* ========== MODAL HELPERS ========== */
-function openModal(id) { document.getElementById('modal-' + id).classList.remove('hidden'); }
-function closeModal(id) { document.getElementById('modal-' + id).classList.add('hidden'); }
-document.querySelectorAll('.modal-overlay').forEach(function(m) {
-  m.addEventListener('click', function(e) { if (e.target === this) this.classList.add('hidden'); });
+// ---- Dialog backdrop close ----
+document.querySelectorAll('dialog').forEach(function(d) {
+  d.addEventListener('click', function(e) { if (e.target === this) this.close(); });
 });
 
 init();
