@@ -273,11 +273,23 @@ function renderLessons(c){
 
 function renderPeople(c){
   const t=document.getElementById('tab-people');
-  db.collection('users').get().then(snap=>{
-    const map={};snap.forEach(d=>{const d2=d.data();map[d.id]={name:d2.name,role:d2.role}});
-    const members=(c.members||[]).map(uid=>map[uid]||{name:'مستخدم',role:'طالب'}).filter((v,i,a)=>a.findIndex(x=>x.name===v.name)===i);
-    const teachers=members.filter(p=>p.role==='teacher');
-    const students=members.filter(p=>p.role!=='teacher');
+  const memberIds=c.members||[];
+  if(!memberIds.length){
+    t.innerHTML=`<div class="empty-state"><i class="ti ti-users"></i><h3>لا يوجد أعضاء بعد</h3></div>`;
+    return;
+  }
+  // Query only the members of this class
+  const promises=memberIds.map(uid=>
+    db.collection('users').doc(uid).get().then(d=>{
+      if(!d.exists) return null;
+      const d2=d.data();
+      return{uid:d.id,name:d2.name,role:d2.role};
+    })
+  );
+  Promise.all(promises).then(members=>{
+    const valid=members.filter(Boolean);
+    const teachers=valid.filter(p=>p.role==='teacher');
+    const students=valid.filter(p=>p.role!=='teacher');
     t.innerHTML=`
     <div style="margin-bottom:16px">
       <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-check" style="color:var(--primary)"></i> المعلمون</div>
@@ -348,7 +360,12 @@ function submitAssignment(){
   ref.put(_uploadedFile).then(s=>s.ref.getDownloadURL()).then(url=>{
     const note=document.getElementById('submitNote').value.trim();
     const sub={uid:currentUser.uid,name:currentUser.name,file:url,fileName:_uploadedFile.name,submittedAt:Date.now(),note:note||''};
-    const updated=((_currentClass.assignments_data||[]).map(a=>a.id===_currentAssignId?{...a,status:'done',submissions:firebase.firestore.FieldValue.arrayUnion(sub)}:a));
+    const existing=_currentClass.assignments_data||[];
+    const updated=existing.map(a=>{
+      if(a.id!==_currentAssignId) return a;
+      const subs=a.submissions||[];
+      return{...a,status:'done',submissions:[...subs,sub]};
+    });
     return getAllClassesRef().doc(_currentClass.id).update({assignments_data:updated});
   }).then(()=>{
     closeModal('submitAssign');
@@ -368,7 +385,7 @@ function createAssignment(){
   const pts=parseInt(document.getElementById('ca-points').value)||20;
   if(!title||!due){showNotification('أدخل عنوان المهمة وتاريخ التسليم');return}
   const dueStr=new Date(due).toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'});
-  const assign={id:Date.now(),title,desc:desc||'لا يوجد وصف',due:dueStr,status:'pending',points:pts,submissions:[]};
+  const assign={id:Date.now(),title,desc:desc||'لا يوجد وصف',due:dueStr,dueISO:due,status:'pending',points:pts,submissions:[]};
   getAllClassesRef().doc(_currentClass.id).update({
     assignments_data:firebase.firestore.FieldValue.arrayUnion(assign),
     assignments:firebase.firestore.FieldValue.increment(1)

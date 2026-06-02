@@ -153,7 +153,7 @@ function renderClassCards(){
           <span class="join-code">${c.code||'—'}</span>
           <div style="display:flex;gap:6px">
             <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openClassDetail('${c.id}')">فتح الصف</button>
-            <button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass('${c.id}')" title="حذف"><i class="ti ti-trash"></i></button>
+            ${currentUser?.role==='teacher'?`<button class="btn btn-danger btn-sm" onclick="event.stopPropagation();deleteClass('${c.id}')" title="حذف"><i class="ti ti-trash"></i></button>`:''}
           </div>
         </div>
         <div class="progress-bar"><div class="progress-fill" style="width:${c.progress||0}%;background:${col.bg}"></div></div>
@@ -168,6 +168,7 @@ function openClassDetail(id){
 }
 
 function deleteClass(id){
+  if(currentUser?.role!=='teacher'){showNotification('فقط المعلم يمكنه حذف الصف');return}
   if(!confirm('هل أنت متأكد من حذف هذا الصف؟'))return;
   getAllClassesRef().doc(id).delete().then(()=>{
     showNotification('تم حذف الصف بنجاح 🗑️');

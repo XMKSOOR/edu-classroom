@@ -33,40 +33,6 @@ function showNotification(msg){
 }
 
 /* ========== AUTH ========== */
-function handleAuth(mode){
-  if(mode==='signIn'){
-    const email=document.getElementById('auth-email').value.trim();
-    const pass=document.getElementById('auth-pass').value;
-    if(!email||!pass){showNotification('قم بملء جميع الحقول');return}
-    auth.signInWithEmailAndPassword(email,pass)
-      .then(()=>window.location.href='dashboard.html')
-      .catch(e=>showNotification(e.message));
-  } else {
-    const name=document.getElementById('auth-name').value.trim();
-    const email=document.getElementById('auth-email-signup').value.trim();
-    const pass=document.getElementById('auth-pass-signup').value;
-    const role=document.getElementById('auth-role').value;
-    if(!name||!email||!pass){showNotification('قم بملء جميع الحقول');return}
-    auth.createUserWithEmailAndPassword(email,pass).then(async cred=>{
-      await cred.user.updateProfile({displayName:name});
-      await db.collection('users').doc(cred.user.uid).set({name,email,role,createdAt:Date.now()});
-      window.location.href='dashboard.html';
-    }).catch(e=>showNotification(e.message));
-  }
-}
-
-function handleGoogleAuth(){
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(async result=>{
-    const user=result.user;
-    const snap=await db.collection('users').doc(user.uid).get();
-    if(!snap.exists){
-      const role=confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)')?'teacher':'student';
-      await db.collection('users').doc(user.uid).set({name:user.displayName,email:user.email,role,createdAt:Date.now()});
-    }
-    window.location.href='dashboard.html';
-  }).catch(e=>showNotification(e.message));
-}
-
 function logout(){
   localStorage.removeItem('edu_user');
   localStorage.removeItem('edu_just_logged_in');
