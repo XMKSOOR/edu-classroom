@@ -110,6 +110,7 @@ document.getElementById('loginBtn').onclick = function() {
   var pass = document.getElementById('auth-pass').value;
   if (!email || !pass) { note('قم بملء جميع الحقول'); return; }
   setLoading('loginBtn', true);
+  localStorage.setItem('edu_just_logged_in', '1');
   auth.signInWithEmailAndPassword(email, pass)
     .then(function() {
       var u = auth.currentUser;
@@ -120,7 +121,7 @@ document.getElementById('loginBtn').onclick = function() {
         saveAndGo(u.uid, name, role);
       });
     })
-    .catch(function(e) { setLoading('loginBtn', false); note(e.message); });
+    .catch(function(e) { localStorage.removeItem('edu_just_logged_in'); setLoading('loginBtn', false); note(e.message); });
 };
 
 document.getElementById('auth-email').onkeydown = function(e) { if (e.key === 'Enter') document.getElementById('loginBtn').click(); };
@@ -135,6 +136,7 @@ document.getElementById('signupBtn').onclick = function() {
   if (!name || !email || !pass) { note('قم بملء جميع الحقول'); return; }
   if (pass.length < 6) { note('كلمة المرور 6 أحرف على الأقل'); return; }
   setLoading('signupBtn', true);
+  localStorage.setItem('edu_just_logged_in', '1');
   auth.createUserWithEmailAndPassword(email, pass)
     .then(function(cred) {
       return cred.user.updateProfile({displayName: name}).then(function() {
@@ -145,7 +147,7 @@ document.getElementById('signupBtn').onclick = function() {
         saveAndGo(cred.user.uid, name, role);
       });
     })
-    .catch(function(e) { setLoading('signupBtn', false); note(e.message); });
+    .catch(function(e) { localStorage.removeItem('edu_just_logged_in'); setLoading('signupBtn', false); note(e.message); });
 };
 
 document.getElementById('auth-name').onkeydown = function(e) { if (e.key === 'Enter') document.getElementById('signupBtn').click(); };
@@ -156,6 +158,7 @@ document.getElementById('auth-role').onkeydown = function(e) { if (e.key === 'En
 // ---- Google ----
 function googleLogin(btnId) {
   setLoading(btnId, true);
+  localStorage.setItem('edu_just_logged_in', '1');
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
     .then(function(result) {
       var user = result.user;
@@ -173,6 +176,7 @@ function googleLogin(btnId) {
       });
     })
     .catch(function(e) {
+      localStorage.removeItem('edu_just_logged_in');
       setLoading(btnId, false);
       if (e.code === 'auth/popup-blocked') { note('تم حظر النافذة المنبثقة، يرجى السماح للنوافذ المنبثقة'); }
       else { note(e.message); }
@@ -182,8 +186,8 @@ document.getElementById('googleBtn').onclick = function() { googleLogin('googleB
 document.getElementById('googleBtn2').onclick = function() { googleLogin('googleBtn2'); };
 
 // ---- Redirect returning users ----
-if (localStorage.getItem('edu_just_logged_in')) {
-  setTimeout(function() { localStorage.removeItem('edu_just_logged_in'); }, 10000);
+if (localStorage.getItem('edu_just_logged_in') && !localStorage.getItem('edu_user')) {
+  localStorage.removeItem('edu_just_logged_in');
 }
 auth.onAuthStateChanged(function(user) {
   if (user && !localStorage.getItem('edu_just_logged_in')) {
