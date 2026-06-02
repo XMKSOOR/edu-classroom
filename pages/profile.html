@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المدرسة النظامية - الملف الشخصي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+<div class="topbar">
+  <a href="../dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
+  <div class="topbar-center">
+    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home"></i><span> الرئيسية</span></a>
+    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar"></i><span> التقويم</span></a>
+    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
+  </div>
+  <div class="topbar-left">
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
+    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar">...</div><span id="userName">جاري التحميل...</span></a>
+    <button class="btn-icon" onclick="logout()"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+<div class="main-content">
+  <div class="section-header"><span>الملف الشخصي</span></div>
+
+  <div style="display:grid;grid-template-columns:1fr 2fr;gap:24px">
+    <!-- Profile Card -->
+    <div class="card" style="text-align:center">
+      <div class="avatar" id="profileAvatar" style="width:80px;height:80px;font-size:32px;margin:0 auto 12px"></div>
+      <h2 id="profileName" style="font-size:20px;font-weight:700">—</h2>
+      <p id="profileRole" style="font-size:14px;color:var(--text2);margin:4px 0 16px">—</p>
+      <span id="profileBadge" class="person-role-badge" style="background:var(--primary-light);color:var(--primary);padding:4px 16px;font-size:13px">—</span>
+      <hr style="border:none;border-top:1px solid var(--border);margin:20px 0">
+      <button class="btn btn-danger btn-sm" onclick="logout()"><i class="ti ti-logout"></i> تسجيل الخروج</button>
+    </div>
+
+    <!-- Info -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">معلومات الحساب</h3>
+        <div class="form-group"><label>الاسم الكامل</label><input id="profName" disabled></div>
+        <div class="form-group"><label>البريد الإلكتروني</label><input id="profEmail" disabled></div>
+        <div class="form-group"><label>الدور</label><input id="profRole" disabled></div>
+      </div>
+      <div class="card">
+        <h3 style="font-size:16px;font-weight:700;margin-bottom:16px">إحصائيات سريعة</h3>
+        <div id="profStats"></div>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="notification" class="notification hidden"></div>
+<script>try{const u=JSON.parse(localStorage.getItem('edu_user'));if(u)currentUser=u}catch(e){}</script>
+<script src="../js/app.js"></script>
+<script>
+function init(){
+  if(!currentUser){window.location.href='../index.html';return}
+  document.getElementById('userName').textContent=currentUser.name;
+  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
+  document.getElementById('profileName').textContent=currentUser.name;
+  document.getElementById('profileAvatar').textContent=currentUser.name.substring(0,2);
+  document.getElementById('profileRole').textContent=currentUser.role==='teacher'?'معلم':'طالب';
+  document.getElementById('profileBadge').textContent=currentUser.role==='teacher'?'معلم':'طالب';
+  document.getElementById('profName').value=currentUser.name;
+  document.getElementById('profRole').value=currentUser.role==='teacher'?'معلم':'طالب';
+  // Load email from auth
+  if(auth.currentUser) document.getElementById('profEmail').value=auth.currentUser.email;
+  // Load stats
+  getClassRef().onSnapshot(snap=>{
+    const cs=snap.docs.map(d=>({id:d.id,...d.data()}));
+    const totalTasks=cs.reduce((s,c)=>(c.assignments_data||[]).length+s,0);
+    const doneTasks=cs.reduce((s,c)=>(c.assignments_data||[]).filter(a=>a.status==='done').length+s,0);
+    document.getElementById('profStats').innerHTML=`
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--primary)">${cs.length}</div><div style="font-size:13px;color:var(--text2)">صفوف مسجلة</div></div>
+        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--green)">${totalTasks}</div><div style="font-size:13px;color:var(--text2)">إجمالي المهام</div></div>
+        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--purple)">${doneTasks}</div><div style="font-size:13px;color:var(--text2)">مهام مكتملة</div></div>
+        <div style="text-align:center;background:var(--surface2);border-radius:var(--radius-sm);padding:16px"><div style="font-size:28px;font-weight:700;color:var(--orange)">${totalTasks-doneTasks}</div><div style="font-size:13px;color:var(--text2)">مهام معلقة</div></div>
+      </div>`;
+  });
+}
+init();
+</script>
+</body>
+</html>

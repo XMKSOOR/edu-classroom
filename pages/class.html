@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المدرسة النظامية - عرض الصف</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+
+<div class="topbar" style="display:none" id="topbar">
+  <a href="../dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
+  <div class="topbar-center">
+    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home"></i><span> الرئيسية</span></a>
+    <a href="calendar.html" class="nav-tab"><i class="ti ti-calendar"></i><span> التقويم</span></a>
+    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
+  </div>
+  <div class="topbar-left">
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
+    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar">...</div><span id="userName">جاري التحميل...</span></a>
+    <button class="btn-icon" onclick="logout()" title="تسجيل الخروج"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+
+<div class="main-content">
+  <div id="loadingView" class="loading-spinner"><i class="ti ti-loader"></i></div>
+  <div id="classContent" style="display:none">
+    <button class="back-btn" onclick="window.location.href='../dashboard.html'"><i class="ti ti-arrow-right"></i> العودة للصفوف</button>
+    <div id="classHero" class="class-hero"></div>
+    <div class="tabs-bar">
+      <button class="tab active" onclick="switchTab('stream')">الإعلانات</button>
+      <button class="tab" onclick="switchTab('assignments')">المهام</button>
+      <button class="tab" onclick="switchTab('lessons')">الدروس</button>
+      <button class="tab" onclick="switchTab('people')">الأعضاء</button>
+    </div>
+    <div id="tab-stream" class="tab-content"></div>
+    <div id="tab-assignments" class="tab-content" style="display:none"></div>
+    <div id="tab-lessons" class="tab-content" style="display:none"></div>
+    <div id="tab-people" class="tab-content" style="display:none"></div>
+  </div>
+</div>
+</div>
+
+<div id="notification" class="notification hidden"></div>
+
+<!-- MODALS -->
+<div id="modal-submitAssign" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>تسليم المهمة</h2>
+    <p id="submitAssignTitle" style="font-weight:600;font-size:14px;color:var(--text1);margin-bottom:16px"></p>
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+      <i class="ti ti-upload" id="uploadIcon"></i>
+      <p id="uploadText">انقر لرفع ملف المهمة</p>
+      <p style="font-size:11px;color:var(--text3);margin-top:4px">PDF, Word, أو صور</p>
+    </div>
+    <input type="file" id="fileInput" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg,.zip" style="display:none" onchange="handleFileSelect(this)">
+    <div class="form-group" style="margin-top:16px"><label>ملاحظة للمعلم (اختياري)</label><textarea id="submitNote" placeholder="اكتب ملاحظتك هنا..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('submitAssign')">إلغاء</button>
+      <button class="btn btn-success" id="submitBtn" onclick="submitAssignment()"><i class="ti ti-send"></i> تسليم</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-addLesson" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>ربط درس جديد</h2>
+    <p>أضف رابط درس أو مادة تعليمية لهذا الصف</p>
+    <div class="form-group"><label>عنوان الدرس</label><input id="ls-title" placeholder="مثال: درس المعادلات التربيعية"></div>
+    <div class="form-group"><label>نوع المحتوى</label>
+      <select id="ls-type">
+        <option value="video">فيديو يوتيوب</option>
+        <option value="doc">مستند / PDF</option>
+        <option value="quiz">اختبار قصير</option>
+        <option value="link">رابط خارجي</option>
+      </select>
+    </div>
+    <div class="form-group"><label>الرابط</label><input id="ls-url" placeholder="https://..."></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('addLesson')">إلغاء</button>
+      <button class="btn btn-primary" id="addLessonBtn" onclick="addLesson()"><i class="ti ti-link"></i> إضافة الدرس</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-addPost" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>إضافة إعلان</h2>
+    <p>شارك إعلاناً مع طلاب الصف</p>
+    <div class="form-group"><label>نص الإعلان</label><textarea id="postText" placeholder="اكتب إعلانك هنا..." style="min-height:100px"></textarea></div>
+    <div class="form-group"><label>مرفق (اختياري)</label>
+      <div class="upload-area" onclick="document.getElementById('postFile').click()" style="padding:14px">
+        <i class="ti ti-paperclip" id="postIcon" style="font-size:20px"></i>
+        <p id="postFileName" style="font-size:12px">إرفاق ملف</p>
+      </div>
+      <input type="file" id="postFile" style="display:none" onchange="handlePostFile(this)">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('addPost')">إلغاء</button>
+      <button class="btn btn-primary" id="publishBtn" onclick="addPost()"><i class="ti ti-send"></i> نشر</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-createAssign" class="modal-overlay hidden">
+  <div class="modal">
+    <h2>إضافة مهمة جديدة</h2>
+    <p>أنشئ واجباً لطلاب هذا الصف</p>
+    <div class="form-group"><label>عنوان المهمة</label><input id="ca-title" placeholder="مثال: واجب المعادلات التربيعية"></div>
+    <div class="form-group"><label>الوصف</label><textarea id="ca-desc" placeholder="وصف المهمة والتعليمات..."></textarea></div>
+    <div class="form-row">
+      <div class="form-group"><label>تاريخ التسليم</label><input id="ca-due" type="date" style="font-family:'Cairo',sans-serif"></div>
+      <div class="form-group"><label>الدرجة</label><input id="ca-points" type="number" value="20" min="1" max="100"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal('createAssign')">إلغاء</button>
+      <button class="btn btn-primary" onclick="createAssignment()"><i class="ti ti-plus"></i> إنشاء</button>
+    </div>
+  </div>
+</div>
+
+<div id="modal-viewSubs" class="modal-overlay hidden">
+  <div class="modal" style="max-width:600px">
+    <h2>تسليمات المهمة</h2>
+    <p id="viewSubTitle" style="font-weight:600;font-size:14px;color:var(--text1);margin-bottom:16px"></p>
+    <div id="submissionsList" style="display:flex;flex-direction:column;gap:8px;max-height:400px;overflow-y:auto"></div>
+    <div class="modal-actions"><button class="btn btn-secondary" onclick="closeModal('viewSubs')">إغلاق</button></div>
+  </div>
+</div>
+
+<script>try{const u=JSON.parse(localStorage.getItem('edu_user'));if(u)currentUser=u}catch(e){}</script>
+<script src="../js/app.js"></script>
+<script>
+/* ========== STATE ========== */
+let _currentClass=null;
+let _uploadedFile=null;
+let _postFile=null;
+let _currentAssignId=null;
+
+/* ========== INIT ========== */
+function init(){
+  if(!currentUser){window.location.href='../index.html';return}
+  document.getElementById('topbar').style.display='flex';
+  document.getElementById('userName').textContent=currentUser.name;
+  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
+
+  const classId=getClassIdFromUrl();
+  if(!classId){showNotification('معرّف الصف غير موجود');window.location.href='../dashboard.html';return}
+  getAllClassesRef().doc(classId).onSnapshot(doc=>{
+    if(!doc.exists){showNotification('الصف غير موجود');window.location.href='../dashboard.html';return}
+    _currentClass={id:doc.id,...doc.data()};
+    document.getElementById('loadingView').style.display='none';
+    document.getElementById('classContent').style.display='block';
+    renderHero();
+    renderActiveTab();
+  },err=>Logger.error('class listener: '+err.message));
+}
+
+/* ========== HERO ========== */
+function renderHero(){
+  const c=_currentClass;
+  const col=COLORS[c.color]||COLORS[0];
+  document.getElementById('classHero').style.background=col.grad;
+  document.getElementById('classHero').innerHTML=`
+    <h1>${c.name}</h1>
+    <p>${c.teacher||''} &nbsp;·&nbsp; رمز الصف: <strong>${c.code||''}</strong></p>
+    <div class="hero-stats">
+      <div class="hero-stat"><div class="num">${c.students||0}</div><div class="lbl">طالب</div></div>
+      <div class="hero-stat"><div class="num">${(c.assignments_data||[]).length}</div><div class="lbl">مهمة</div></div>
+      <div class="hero-stat"><div class="num">${(c.lessons_data||[]).length}</div><div class="lbl">درس</div></div>
+      <div class="hero-stat"><div class="num">${c.progress||0}%</div><div class="lbl">إنجاز</div></div>
+    </div>`;
+}
+
+/* ========== TABS ========== */
+function switchTab(name){
+  document.querySelectorAll('.tab-content').forEach(t=>t.style.display='none');
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelector(`.tab[onclick*="'${name}'"]`).classList.add('active');
+  document.getElementById('tab-'+name).style.display='block';
+  const c=_currentClass;
+  if(name==='stream') renderStream(c);
+  if(name==='assignments') renderAssignments(c);
+  if(name==='lessons') renderLessons(c);
+  if(name==='people') renderPeople(c);
+}
+function renderActiveTab(){
+  const active=document.querySelector('.tab.active');
+  const name=active?.getAttribute('onclick')?.match(/'(\w+)'/)?.[1]||'stream';
+  switchTab(name);
+}
+
+/* ========== TAB RENDERERS ========== */
+function renderStream(c){
+  const t=document.getElementById('tab-stream');
+  const isTeacher=currentUser?.role==='teacher';
+  t.innerHTML=(isTeacher?`<div class="stream-post" style="border:2px dashed var(--border);background:var(--surface2);cursor:pointer" onclick="openModal('addPost')">
+    <div style="display:flex;align-items:center;gap:10px;color:var(--text3)">
+      <div class="avatar" style="background:var(--primary);color:#fff">${currentUser.name.substring(0,2)}</div>
+      <span style="font-size:14px">شارك إعلاناً مع الصف...</span>
+    </div>
+  </div>`:'')+
+  (c.stream||[]).map(p=>`<div class="stream-post">
+    <div class="post-header">
+      <div class="avatar" style="background:${p.avatarColor||'var(--primary)'}">${p.avatar||p.author?.substring(0,2)||'?'}</div>
+      <div><div style="font-size:14px;font-weight:600">${p.author}</div></div>
+      <span class="post-time">${p.time||''}</span>
+    </div>
+    <p class="post-text">${p.text}</p>
+    ${p.attachment?`<div class="post-attachment" onclick="window.open('${p.attachment.url}','_blank')"><i class="ti ${p.attachment.icon||'ti-file'}" style="font-size:20px;color:var(--primary)"></i><span>${p.attachment.name}</span><i class="ti ti-download" style="margin-right:auto;color:var(--text3)"></i></div>`:''}
+  </div>`).join('');
+  if(!c.stream?.length&&!isTeacher) t.innerHTML=`<div class="empty-state"><i class="ti ti-message"></i><h3>لا توجد إعلانات بعد</h3><p>سيتم عرض إعلانات المعلم هنا</p></div>`;
+}
+
+function renderAssignments(c){
+  const t=document.getElementById('tab-assignments');
+  const isTeacher=currentUser?.role==='teacher';
+  t.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <span style="font-size:15px;font-weight:600">المهام والواجبات</span>
+    ${isTeacher?`<button class="btn btn-primary btn-sm" onclick="openModal('createAssign')"><i class="ti ti-plus"></i> إضافة مهمة</button>`:''}
+  </div>
+  <div class="assignments-list">${
+    (c.assignments_data||[]).map(a=>{
+      const stl={pending:['#fff9e6','#fa7b17'],done:['#e6f4ea','#1e8e3e'],late:['#fce8e6','#d93025']};
+      const icons={pending:'ti-clock',done:'ti-check',late:'ti-alert-triangle'};
+      const sl=stl[a.status]||stl.pending;
+      const lbl={pending:'قيد التسليم',done:'مُسلَّم',late:'متأخر'};
+      const click=isTeacher?`viewSubmissions(${a.id},'${a.title.replace(/'/g,"\\'")}')`:`openSubmit(${a.id},'${a.title.replace(/'/g,"\\'")}')`;
+      return `<div class="assignment-card" onclick="${click}">
+        <div class="assign-icon" style="background:${sl[0]};color:${sl[1]}"><i class="ti ${icons[a.status]}"></i></div>
+        <div class="assign-info"><h4>${a.title}</h4><p>${a.desc||''}</p></div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+          <span class="assign-badge" style="background:${sl[0]};color:${sl[1]}">${lbl[a.status]}</span>
+          <span class="assign-date"><i class="ti ti-calendar" style="font-size:12px"></i> ${a.due||''}</span>
+          <span style="font-size:12px;color:var(--text3)">${a.points||0} درجة</span>
+        </div>
+      </div>`;
+    }).join('')||`<div class="empty-state"><i class="ti ti-clipboard"></i><h3>لا توجد مهام بعد</h3></div>`
+  }</div>`;
+}
+
+function renderLessons(c){
+  const t=document.getElementById('tab-lessons');
+  const typeLabel={video:'فيديو',doc:'مستند',quiz:'اختبار',link:'رابط'};
+  const typeIcon={video:'ti-player-play',doc:'ti-file-description',quiz:'ti-clipboard-check',link:'ti-external-link'};
+  const isTeacher=currentUser?.role==='teacher';
+  t.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+    <span style="font-size:15px;font-weight:600">الدروس والمواد</span>
+    ${isTeacher?`<button class="btn btn-primary btn-sm" onclick="openModal('addLesson')"><i class="ti ti-link"></i> ربط درس</button>`:''}
+  </div>
+  <div class="lessons-grid">${
+    (c.lessons_data||[]).map(l=>`<div class="lesson-card" onclick="openLesson('${(l.url||'').replace(/'/g,"\\'")}','${l.title.replace(/'/g,"\\'")}')">
+      <div class="lesson-thumb" style="background:${l.color||'var(--surface3)'}"><span style="font-size:42px">${l.emoji||'📄'}</span><span class="lesson-tag">${typeLabel[l.type]||'رابط'}</span></div>
+      <div class="lesson-body">
+        <h4>${l.title}</h4><p>${l.desc||''}</p>
+        <div class="lesson-footer">
+          <span class="lesson-type"><i class="ti ${typeIcon[l.type]||'ti-link'}" style="font-size:13px"></i> ${typeLabel[l.type]||'رابط'}</span>
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();openLesson('${(l.url||'').replace(/'/g,"\\'")}','${l.title.replace(/'/g,"\\'")}')">فتح</button>
+        </div>
+      </div>
+    </div>`).join('')||`<div class="empty-state"><i class="ti ti-book"></i><h3>لا توجد دروس بعد</h3></div>`
+  }</div>`;
+}
+
+function renderPeople(c){
+  const t=document.getElementById('tab-people');
+  db.collection('users').get().then(snap=>{
+    const map={};snap.forEach(d=>{const d2=d.data();map[d.id]={name:d2.name,role:d2.role}});
+    const members=(c.members||[]).map(uid=>map[uid]||{name:'مستخدم',role:'طالب'}).filter((v,i,a)=>a.findIndex(x=>x.name===v.name)===i);
+    const teachers=members.filter(p=>p.role==='teacher');
+    const students=members.filter(p=>p.role!=='teacher');
+    t.innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-shield-check" style="color:var(--primary)"></i> المعلمون</div>
+      ${teachers.map(p=>`<div class="person-card" style="margin-bottom:12px"><div class="person-avatar" style="background:var(--primary);color:#fff">${p.name.substring(0,2)}</div><div class="person-info"><h4>${p.name}</h4><p>معلم الصف</p></div><span class="person-role-badge" style="background:var(--primary-light);color:var(--primary)">معلم</span></div>`).join('')||''}
+    </div>
+    <div>
+      <div style="font-size:13px;font-weight:600;color:var(--text2);margin-bottom:12px;display:flex;align-items:center;gap:6px"><i class="ti ti-users" style="color:var(--green)"></i> الطلاب (${students.length})</div>
+      <div class="people-list">${students.map(p=>`<div class="person-card"><div class="person-avatar" style="background:var(--surface3);color:var(--text1)">${p.name.substring(0,2)}</div><div class="person-info"><h4>${p.name}</h4><p>طالب</p></div><span class="person-role-badge" style="background:var(--green-light);color:var(--green)">طالب</span></div>`).join('')||`<div class="empty-state"><i class="ti ti-users"></i><h3>لا يوجد أعضاء بعد</h3></div>`}</div>
+    </div>`;
+  }).catch(e=>Logger.error('renderPeople: '+e.message));
+}
+
+/* ========== STREAM POST ========== */
+function handlePostFile(input){
+  const f=input.files[0];
+  if(!f) return;
+  _postFile=f;
+  document.getElementById('postIcon').className='ti ti-file';
+  document.getElementById('postFileName').textContent=f.name;
+}
+function addPost(){
+  const text=document.getElementById('postText').value.trim();
+  if(!text){showNotification('اكتب نص الإعلان أولاً');return}
+  const post={id:Date.now(),author:currentUser.name,avatar:currentUser.name.substring(0,2),avatarColor:'#1a73e8',time:new Date().toLocaleString('ar-SA'),text,attachment:null};
+  const update=p=>getAllClassesRef().doc(_currentClass.id).update({stream:firebase.firestore.FieldValue.arrayUnion(p)});
+  if(_postFile){
+    document.getElementById('publishBtn').disabled=true;
+    const ref=storage.ref('stream/'+_currentClass.id+'/'+Date.now()+'_'+_postFile.name);
+    ref.put(_postFile).then(s=>s.ref.getDownloadURL()).then(url=>{
+      post.attachment={name:_postFile.name,icon:'ti-file',url};
+      return update(post);
+    }).then(()=>{closeModal('addPost');resetPostForm();showNotification('تم النشر 🎉')}).catch(e=>showNotification(e.message));
+  } else {
+    update(post).then(()=>{closeModal('addPost');resetPostForm();showNotification('تم النشر 🎉')}).catch(e=>showNotification(e.message));
+  }
+}
+function resetPostForm(){
+  document.getElementById('postText').value='';_postFile=null;
+  document.getElementById('postIcon').className='ti ti-paperclip';
+  document.getElementById('postFileName').textContent='إرفاق ملف';
+  document.getElementById('publishBtn').disabled=false;
+}
+
+/* ========== ASSIGNMENTS ========== */
+function openSubmit(id,title){
+  _currentAssignId=id;_uploadedFile=null;
+  document.getElementById('fileInput').value='';
+  document.getElementById('uploadIcon').className='ti ti-upload';
+  document.getElementById('uploadIcon').style.color='';
+  document.getElementById('uploadText').textContent='انقر لرفع ملف المهمة';
+  document.getElementById('submitAssignTitle').textContent=title;
+  openModal('submitAssign');
+}
+function handleFileSelect(input){
+  const f=input.files[0];
+  if(!f) return;
+  if(f.size>20*1024*1024){showNotification('الملف كبير جداً (20MB حد أقصى) ⚠️');return}
+  _uploadedFile=f;
+  document.getElementById('uploadIcon').className='ti ti-file';
+  document.getElementById('uploadIcon').style.color='var(--primary)';
+  document.getElementById('uploadText').textContent=f.name+' ('+(f.size/1024).toFixed(1)+'KB)';
+}
+function submitAssignment(){
+  if(!_uploadedFile){showNotification('يرجى اختيار ملف أولاً ⚠️');return}
+  document.getElementById('submitBtn').disabled=true;
+  document.getElementById('submitBtn').innerHTML='<i class="ti ti-loader"></i> جاري الرفع...';
+  const ref=storage.ref('assignments/'+_currentClass.id+'/'+_currentAssignId+'/'+currentUser.uid+'_'+_uploadedFile.name);
+  ref.put(_uploadedFile).then(s=>s.ref.getDownloadURL()).then(url=>{
+    const note=document.getElementById('submitNote').value.trim();
+    const sub={uid:currentUser.uid,name:currentUser.name,file:url,fileName:_uploadedFile.name,submittedAt:Date.now(),note:note||''};
+    const updated=((_currentClass.assignments_data||[]).map(a=>a.id===_currentAssignId?{...a,status:'done',submissions:firebase.firestore.FieldValue.arrayUnion(sub)}:a));
+    return getAllClassesRef().doc(_currentClass.id).update({assignments_data:updated});
+  }).then(()=>{
+    closeModal('submitAssign');
+    document.getElementById('submitNote').value='';
+    showNotification('تم تسليم المهمة بنجاح! 🎉');
+  }).catch(e=>showNotification(e.message)).finally(()=>{
+    document.getElementById('submitBtn').disabled=false;
+    document.getElementById('submitBtn').innerHTML='<i class="ti ti-send"></i> تسليم';
+    _uploadedFile=null;
+  });
+}
+
+function createAssignment(){
+  const title=document.getElementById('ca-title').value.trim();
+  const desc=document.getElementById('ca-desc').value.trim();
+  const due=document.getElementById('ca-due').value;
+  const pts=parseInt(document.getElementById('ca-points').value)||20;
+  if(!title||!due){showNotification('أدخل عنوان المهمة وتاريخ التسليم');return}
+  const dueStr=new Date(due).toLocaleDateString('ar-SA',{day:'numeric',month:'long',year:'numeric'});
+  const assign={id:Date.now(),title,desc:desc||'لا يوجد وصف',due:dueStr,status:'pending',points:pts,submissions:[]};
+  getAllClassesRef().doc(_currentClass.id).update({
+    assignments_data:firebase.firestore.FieldValue.arrayUnion(assign),
+    assignments:firebase.firestore.FieldValue.increment(1)
+  }).then(()=>{
+    closeModal('createAssign');
+    document.getElementById('ca-title').value='';document.getElementById('ca-desc').value='';
+    document.getElementById('ca-due').value='';document.getElementById('ca-points').value='20';
+    showNotification('تم إنشاء المهمة 📝');
+  }).catch(e=>showNotification(e.message));
+}
+
+function viewSubmissions(id,title){
+  const a=(_currentClass.assignments_data||[]).find(x=>x.id===id);
+  const subs=a?.submissions||[];
+  document.getElementById('viewSubTitle').textContent=title+' ('+subs.length+' تسليم)';
+  document.getElementById('submissionsList').innerHTML=subs.length
+    ?subs.map(s=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--surface2);border-radius:8px">
+      <div class="avatar" style="background:var(--primary);color:#fff;width:36px;height:36px;font-size:13px">${s.name?.substring(0,2)||'?'}</div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${s.name}</div><div style="font-size:11px;color:var(--text3)">${s.submittedAt?new Date(s.submittedAt).toLocaleDateString('ar-SA'):''}</div></div>
+      ${s.file?`<a href="${s.file}" target="_blank" class="btn btn-sm btn-primary"><i class="ti ti-download"></i></a>`:''}
+      ${s.note?`<span style="font-size:11px;color:var(--text2);max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.note}</span>`:''}
+    </div>`).join('')
+    :`<div class="empty-state"><i class="ti ti-inbox"></i><h3>لا توجد تسليمات بعد</h3></div>`;
+  openModal('viewSubs');
+}
+
+/* ========== LESSONS ========== */
+function openLesson(url,title){
+  if(url&&url.startsWith('http')){window.open(url,'_blank');Logger.info('openLesson: '+title);}
+  else showNotification('هذا الدرس لا يحتوي على رابط بعد');
+}
+function addLesson(){
+  const title=document.getElementById('ls-title').value.trim();
+  const type=document.getElementById('ls-type').value;
+  const url=document.getElementById('ls-url').value.trim();
+  if(!title){showNotification('أدخل عنوان الدرس');return}
+  document.getElementById('addLessonBtn').disabled=true;
+  document.getElementById('addLessonBtn').innerHTML='<i class="ti ti-loader"></i>';
+  const emojiMap={video:'📹',doc:'📄',quiz:'📝',link:'🔗'};
+  const colorMap={video:'#e8f0fe',doc:'#e6f4ea',quiz:'#fef3e2',link:'#f3e8fd'};
+  const newLesson={id:Date.now(),title,desc:'درس مُضاف حديثاً',type,url,emoji:emojiMap[type],color:colorMap[type]};
+  getAllClassesRef().doc(_currentClass.id).update({
+    lessons_data:firebase.firestore.FieldValue.arrayUnion(newLesson)
+  }).then(()=>{
+    document.getElementById('ls-title').value='';document.getElementById('ls-url').value='';
+    closeModal('addLesson');
+    showNotification('تم ربط الدرس بنجاح! ✅');
+  }).catch(e=>showNotification(e.message)).finally(()=>{
+    document.getElementById('addLessonBtn').disabled=false;
+    document.getElementById('addLessonBtn').innerHTML='<i class="ti ti-link"></i> إضافة الدرس';
+  });
+}
+
+/* ========== MODAL HELPERS ========== */
+function openModal(id){document.getElementById('modal-'+id).classList.remove('hidden')}
+function closeModal(id){document.getElementById('modal-'+id).classList.add('hidden')}
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',function(e){if(e.target===this)this.classList.add('hidden')});
+});
+
+init();
+</script>
+</body>
+</html>

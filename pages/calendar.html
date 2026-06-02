@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المدرسة النظامية - التقويم</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
+<script src="../js/firebase-config.js"></script>
+</head>
+<body>
+<div class="app-wrapper">
+<div class="topbar">
+  <a href="../dashboard.html" class="logo"><i class="ti ti-school"></i><span>المدرسة النظامية</span></a>
+  <div class="topbar-center">
+    <a href="../dashboard.html" class="nav-tab"><i class="ti ti-home"></i><span> الرئيسية</span></a>
+    <a href="calendar.html" class="nav-tab active"><i class="ti ti-calendar"></i><span> التقويم</span></a>
+    <a href="grades.html" class="nav-tab"><i class="ti ti-chart-bar"></i><span> الدرجات</span></a>
+  </div>
+  <div class="topbar-left">
+    <button class="btn-icon" onclick="showNotification('لا توجد إشعارات جديدة')"><i class="ti ti-bell"></i></button>
+    <a href="profile.html" class="user-btn"><div class="avatar" id="userAvatar">...</div><span id="userName">جاري التحميل...</span></a>
+    <button class="btn-icon" onclick="logout()"><i class="ti ti-logout"></i></button>
+  </div>
+</div>
+<div class="main-content">
+  <div class="section-header"><span>التقويم الأكاديمي</span></div>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+      <button class="btn btn-secondary btn-sm" onclick="prevMonth()"><i class="ti ti-chevron-right"></i></button>
+      <h3 id="calTitle" style="font-size:18px;font-weight:700"></h3>
+      <button class="btn btn-secondary btn-sm" onclick="nextMonth()"><i class="ti ti-chevron-left"></i></button>
+    </div>
+    <div class="cal-grid" id="calGrid"></div>
+  </div>
+  <div style="margin-top:24px">
+    <div class="section-header"><span>المواعيد القادمة</span></div>
+    <div id="upcomingList"></div>
+  </div>
+</div>
+</div>
+<div id="notification" class="notification hidden"></div>
+<script>try{const u=JSON.parse(localStorage.getItem('edu_user'));if(u)currentUser=u}catch(e){}</script>
+<script src="../js/app.js"></script>
+<script>
+const arabicMonths=['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+const arabicDays=['أحد','اثن','ثلا','أرب','خمي','جمع','سبت'];
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
+
+function init(){
+  if(!currentUser){window.location.href='../index.html';return}
+  document.getElementById('userName').textContent=currentUser.name;
+  document.getElementById('userAvatar').textContent=currentUser.name.substring(0,2);
+  renderCalendar();
+  getClassRef().onSnapshot(s=>{_cloudClasses=s.docs.map(d=>({id:d.id,...d.data()}));renderCalendar()});
+}
+
+function renderCalendar(){
+  const d=new Date(calYear,calMonth,1);
+  document.getElementById('calTitle').textContent=arabicMonths[calMonth]+' '+calYear;
+  const grid=document.getElementById('calGrid');
+  const startDay=d.getDay(),daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const today=new Date();
+  let html=arabicDays.map(d=>`<div style="text-align:center;font-size:12px;font-weight:600;color:var(--text2);padding:6px">${d}</div>`).join('');
+  for(let i=0;i<startDay;i++) html+=`<div></div>`;
+  for(let day=1;day<=daysInMonth;day++){
+    const isToday=day===today.getDate()&&calMonth===today.getMonth()&&calYear===today.getFullYear();
+    const hasDue=_cloudClasses.some(c=>(c.assignments_data||[]).some(a=>a.due&&a.due.includes(day+' '+arabicMonths[calMonth])));
+    html+=`<div class="cal-day ${isToday?'today':''}" onclick="showNotification('${day} ${arabicMonths[calMonth]}')">${day}${hasDue?`<div class="dot"></div>`:''}</div>`;
+  }
+  grid.innerHTML=html;
+  // upcoming
+  const allTasks=_cloudClasses.flatMap(c=>(c.assignments_data||[]).map(a=>({...a,class:c.name,color:(COLORS[c.color]||COLORS[0]).bg})));
+  const pending=allTasks.filter(a=>a.status==='pending'||a.status==='late');
+  document.getElementById('upcomingList').innerHTML=pending.length
+    ?pending.map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:8px">
+      <div style="width:8px;height:8px;border-radius:50%;background:${a.color};flex-shrink:0"></div>
+      <div style="flex:1"><div style="font-size:14px;font-weight:600">${a.title}</div><div style="font-size:12px;color:var(--text2)">${a.class}</div></div>
+      <span style="font-size:12px;color:var(--text3)">${a.due}</span>
+    </div>`).join('')
+    :`<div class="empty-state"><i class="ti ti-calendar-check"></i><h3>لا توجد مواعيد قادمة</h3></div>`;
+}
+function prevMonth(){calMonth--;if(calMonth<0){calMonth=11;calYear--}renderCalendar()}
+function nextMonth(){calMonth++;if(calMonth>11){calMonth=0;calYear++}renderCalendar()}
+init();
+</script>
+</body>
+</html>
