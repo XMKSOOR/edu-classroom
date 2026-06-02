@@ -7,14 +7,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/tabler-icons.min.css">
 <link rel="stylesheet" href="css/style.css">
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics-compat.js"></script>
 </head>
 <body>
-<div class="auth-page" id="authPage">
+<div class="auth-page">
   <div class="auth-card">
     <div style="text-align:center;margin-bottom:20px">
       <i class="ti ti-school" style="font-size:48px;color:var(--primary)"></i>
@@ -22,123 +17,129 @@
       <p style="font-size:14px;color:var(--text2);margin-top:4px">منصة التعليم التفاعلية</p>
     </div>
 
-    <!-- LOGIN -->
     <div id="loginForm">
-      <h2 style="font-size:20px;margin-bottom:4px">تسجيل الدخول 🔑</h2>
+      <h2 style="font-size:20px;margin-bottom:4px">تسجيل الدخول</h2>
       <p style="margin-bottom:20px">مرحباً بك مجدداً</p>
       <div class="form-group"><label>البريد الإلكتروني</label><input id="auth-email" type="email" placeholder="email@example.com"></div>
       <div class="form-group"><label>كلمة المرور</label><input id="auth-pass" type="password" placeholder="••••••••"></div>
-      <button class="btn btn-primary btn-block" onclick="handleAuth('signIn')">دخول</button>
+      <button class="btn btn-primary btn-block" id="loginBtn">دخول</button>
       <div class="auth-divider"><hr><span>أو</span><hr></div>
-      <button class="btn btn-secondary btn-block" onclick="handleGoogleAuth()"><i class="ti ti-brand-google"></i> تسجيل الدخول بـ Google</button>
-      <div class="auth-switch">ليس لديك حساب؟ <span onclick="toggleAuthForm(false)">أنشئ حساباً</span></div>
+      <button class="btn btn-secondary btn-block" id="googleBtn"><i class="ti ti-brand-google"></i> تسجيل الدخول بـ Google</button>
+      <div class="auth-switch">ليس لديك حساب؟ <span id="showSignup">أنشئ حساباً</span></div>
     </div>
 
-    <!-- SIGNUP -->
     <div id="signupForm" style="display:none">
-      <h2 style="font-size:20px;margin-bottom:4px">إنشاء حساب 🎓</h2>
+      <h2 style="font-size:20px;margin-bottom:4px">إنشاء حساب</h2>
       <p style="margin-bottom:20px">انضم إلى المنصة الآن</p>
       <div class="form-group"><label>الاسم الكامل</label><input id="auth-name" placeholder="أحمد محمد"></div>
       <div class="form-group"><label>البريد الإلكتروني</label><input id="auth-email-signup" type="email" placeholder="email@example.com"></div>
       <div class="form-group"><label>كلمة المرور</label><input id="auth-pass-signup" type="password" placeholder="••••••••"></div>
       <div class="form-group">
         <label>الدور</label>
-        <select id="auth-role">
-          <option value="student">طالب</option>
-          <option value="teacher">معلم</option>
-        </select>
+        <select id="auth-role"><option value="student">طالب</option><option value="teacher">معلم</option></select>
       </div>
-      <button class="btn btn-primary btn-block" onclick="handleAuth('signUp')">اشتراك</button>
+      <button class="btn btn-primary btn-block" id="signupBtn">اشتراك</button>
       <div class="auth-divider"><hr><span>أو</span><hr></div>
-      <button class="btn btn-secondary btn-block" onclick="handleGoogleAuth()"><i class="ti ti-brand-google"></i> التسجيل بـ Google</button>
-      <div class="auth-switch">لديك حساب بالفعل؟ <span onclick="toggleAuthForm(true)">تسجيل الدخول</span></div>
+      <button class="btn btn-secondary btn-block" id="googleBtn2"><i class="ti ti-brand-google"></i> التسجيل بـ Google</button>
+      <div class="auth-switch">لديك حساب بالفعل؟ <span id="showLogin">تسجيل الدخول</span></div>
     </div>
   </div>
 </div>
 
 <div id="notification" class="notification hidden"></div>
 
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-storage-compat.js"></script>
 <script>
-const firebaseConfig = {
+var firebaseConfig = {
   apiKey: "AIzaSyACPGcCa9V0IhjMJASYehP6NBR45IZ63Fw",
   authDomain: "edu-classroom-a2b8d.firebaseapp.com",
   projectId: "edu-classroom-a2b8d",
   storageBucket: "edu-classroom-a2b8d.firebasestorage.app",
   messagingSenderId: "1026113862086",
-  appId: "1:1026113862086:web:1b5a7f0e09841987d7dac7",
-  measurementId: "G-6ZH7JPQMF3"
+  appId: "1:1026113862086:web:1b5a7f0e09841987d7dac7"
 };
 firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
+var auth = firebase.auth();
+var db = firebase.firestore();
 
-function toggleAuthForm(showLogin){
-  document.getElementById('loginForm').style.display=showLogin?'block':'none';
-  document.getElementById('signupForm').style.display=showLogin?'none':'block';
-}
-
-function showNotification(msg){
-  const n=document.getElementById('notification');
-  if(!n)return;
-  n.innerHTML='<i class="ti ti-info-circle"></i> '+msg;
+function notify(msg) {
+  var n = document.getElementById('notification');
+  n.innerHTML = '<i class="ti ti-info-circle"></i> ' + msg;
   n.classList.remove('hidden');
-  setTimeout(()=>n.classList.add('hidden'),3000);
+  setTimeout(function() { n.classList.add('hidden'); }, 3500);
 }
 
-function saveUser(user, role){
-  const u={uid:user.uid,name:user.displayName||'مستخدم',role:role||'student'};
-  localStorage.setItem('edu_user',JSON.stringify(u));
+function goToDashboard() {
+  localStorage.setItem('edu_just_logged_in', '1');
+  window.location.href = 'dashboard.html';
 }
 
-function goToDashboard(){
-  localStorage.setItem('edu_just_logged_in','1');
-  setTimeout(() => window.location.href='dashboard.html', 800);
+function toggleLogin(show) {
+  document.getElementById('loginForm').style.display = show ? 'block' : 'none';
+  document.getElementById('signupForm').style.display = show ? 'none' : 'block';
 }
 
-function handleAuth(mode){
-  if(mode==='signIn'){
-    const email=document.getElementById('auth-email').value.trim();
-    const pass=document.getElementById('auth-pass').value;
-    if(!email||!pass){showNotification('قم بملء جميع الحقول');return}
-    auth.signInWithEmailAndPassword(email,pass).then(()=>{
-      saveUser(auth.currentUser);
-      goToDashboard();
-    }).catch(e=>showNotification(e.message));
-  } else {
-    const name=document.getElementById('auth-name').value.trim();
-    const email=document.getElementById('auth-email-signup').value.trim();
-    const pass=document.getElementById('auth-pass-signup').value;
-    const role=document.getElementById('auth-role').value;
-    if(!name||!email||!pass){showNotification('قم بملء جميع الحقول');return}
-    auth.createUserWithEmailAndPassword(email,pass).then(async cred=>{
-      await cred.user.updateProfile({displayName:name});
-      await db.collection('users').doc(cred.user.uid).set({name,email,role,createdAt:Date.now()});
-      saveUser(cred.user,role);
-      goToDashboard();
-    }).catch(e=>showNotification(e.message));
-  }
-}
+// Toggle buttons
+document.getElementById('showSignup').addEventListener('click', function() { toggleLogin(false); });
+document.getElementById('showLogin').addEventListener('click', function() { toggleLogin(true); });
 
-function handleGoogleAuth(){
-  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(async result=>{
-    const user=result.user;
-    const snap=await db.collection('users').doc(user.uid).get();
-    let role='student';
-    if(!snap.exists){
-      role=confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)')?'teacher':'student';
-      await db.collection('users').doc(user.uid).set({name:user.displayName,email:user.email,role,createdAt:Date.now()});
-    } else {
-      role=snap.data().role||'student';
-    }
-    saveUser(user,role);
+// Email/password login
+document.getElementById('loginBtn').addEventListener('click', function() {
+  var email = document.getElementById('auth-email').value.trim();
+  var pass = document.getElementById('auth-pass').value;
+  if (!email || !pass) { notify('قم بملء جميع الحقول'); return; }
+  auth.signInWithEmailAndPassword(email, pass).then(function() {
+    var u = auth.currentUser;
+    localStorage.setItem('edu_user', JSON.stringify({uid: u.uid, name: u.displayName || u.email, role: 'student'}));
     goToDashboard();
-  }).catch(e=>showNotification(e.message));
-}
+  }).catch(function(e) { notify(e.message); });
+});
 
-// Redirect returning logged-in users to dashboard immediately
-auth.onAuthStateChanged(user=>{
-  if(user && !localStorage.getItem('edu_just_logged_in')){
-    window.location.href='dashboard.html';
+// Email/password signup
+document.getElementById('signupBtn').addEventListener('click', function() {
+  var name = document.getElementById('auth-name').value.trim();
+  var email = document.getElementById('auth-email-signup').value.trim();
+  var pass = document.getElementById('auth-pass-signup').value;
+  var role = document.getElementById('auth-role').value;
+  if (!name || !email || !pass) { notify('قم بملء جميع الحقول'); return; }
+  if (pass.length < 6) { notify('كلمة المرور 6 أحرف على الأقل'); return; }
+  auth.createUserWithEmailAndPassword(email, pass).then(function(cred) {
+    return cred.user.updateProfile({displayName: name}).then(function() {
+      return db.collection('users').doc(cred.user.uid).set({name: name, email: email, role: role, createdAt: Date.now()});
+    }).then(function() {
+      localStorage.setItem('edu_user', JSON.stringify({uid: cred.user.uid, name: name, role: role}));
+      goToDashboard();
+    });
+  }).catch(function(e) { notify(e.message); });
+});
+
+// Google sign-in
+function googleLogin() {
+  auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(function(result) {
+    var user = result.user;
+    return db.collection('users').doc(user.uid).get().then(function(snap) {
+      var role = 'student';
+      if (!snap.exists) {
+        role = confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)') ? 'teacher' : 'student';
+        return db.collection('users').doc(user.uid).set({name: user.displayName, email: user.email, role: role, createdAt: Date.now()}).then(function() { return role; });
+      }
+      return snap.data().role || 'student';
+    }).then(function(role) {
+      localStorage.setItem('edu_user', JSON.stringify({uid: user.uid, name: user.displayName || 'مستخدم', role: role}));
+      goToDashboard();
+    });
+  }).catch(function(e) { notify(e.message); });
+}
+document.getElementById('googleBtn').addEventListener('click', googleLogin);
+document.getElementById('googleBtn2').addEventListener('click', googleLogin);
+
+// Redirect if already logged in
+auth.onAuthStateChanged(function(user) {
+  if (user && !localStorage.getItem('edu_just_logged_in')) {
+    window.location.href = 'dashboard.html';
   }
 });
 </script>
