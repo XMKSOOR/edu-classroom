@@ -340,6 +340,12 @@ function handleFileSelect(input) {
 
 function submitAssignment() {
   if (!_uploadedFile) { showNotification('يرجى اختيار ملف أولاً ⚠️'); return; }
+  var a = (_currentClass.assignments_data || []).find(function(x) { return x.id === _currentAssignId; });
+  if (a && (a.submissions || []).some(function(s) { return s.uid === currentUser.uid; })) {
+    showNotification('لقد سلَّمت هذه المهمة مسبقاً ⚠️');
+    document.getElementById('submitBtn').disabled = false;
+    return;
+  }
   document.getElementById('submitBtn').disabled = true;
   document.getElementById('submitBtn').innerHTML = '<i class="ti ti-loader"></i> جاري الرفع...';
   var ref = storage.ref('assignments/' + _currentClass.id + '/' + _currentAssignId + '/' + currentUser.uid + '_' + _uploadedFile.name);

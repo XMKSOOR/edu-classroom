@@ -50,19 +50,33 @@ function init() {
 function renderGrades() {
   var g = document.getElementById('gradesContent');
   if (!_cloudClasses.length) { g.innerHTML = '<div class="empty-state"><i class="ti ti-chart-bar"></i><h3>لا توجد درجات بعد</h3></div>'; return; }
+  var isTeacher = currentUser && currentUser.role === 'teacher';
   g.innerHTML = _cloudClasses.map(function(c) {
     var col = COLORS[c.color] || COLORS[0];
     return '<div class="card" style="margin-bottom:16px"><div class="card-header">' +
       '<div style="width:10px;height:10px;border-radius:50%;background:' + col.bg + '"></div>' +
       '<h3>' + c.name + '</h3></div><div style="display:flex;flex-direction:column;gap:8px">' +
       ((c.assignments_data || []).map(function(a) {
-        var gradeMap = {done: 'مُسلَّم', pending: '—', late: 'متأخر'};
-        var colorMap = {done: 'var(--green)', pending: 'var(--text3)', late: 'var(--red)'};
+        var userSub = (a.submissions || []).find(function(s) { return s.uid === currentUser.uid; });
+        var status, label, color;
+        if (isTeacher) {
+          var subCount = (a.submissions || []).length;
+          var memberCount = (c.members || []).filter(function(m) { return m !== c.teacherId; }).length || 1;
+          status = subCount > 0 ? 'done' : 'pending';
+          label = subCount + '/' + memberCount + ' سلَّم';
+          color = subCount > 0 ? 'var(--green)' : 'var(--text3)';
+        } else {
+          status = userSub ? 'done' : (a.dueISO && new Date(a.dueISO) < new Date() ? 'late' : 'pending');
+          var gradeMap = {done: 'مُسلَّم', pending: '—', late: 'متأخر'};
+          var colorMap = {done: 'var(--green)', pending: 'var(--text3)', late: 'var(--red)'};
+          label = gradeMap[status] || '—';
+          color = colorMap[status] || 'var(--text3)';
+        }
         return '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 14px;background:var(--surface2);border-radius:8px">' +
           '<span style="font-size:14px">' + a.title + '</span>' +
           '<div style="display:flex;align-items:center;gap:16px">' +
           '<span style="font-size:12px;color:var(--text3)">' + (a.points || 0) + ' درجة</span>' +
-          '<span style="font-size:13px;font-weight:600;color:' + (colorMap[a.status] || 'var(--text3)') + '">' + (gradeMap[a.status] || '—') + '</span>' +
+          '<span style="font-size:13px;font-weight:600;color:' + color + '">' + label + '</span>' +
           '</div></div>';
       }).join('') || '<div style="text-align:center;padding:20px;color:var(--text3)">لا توجد مهام</div>') +
       '</div></div>';
