@@ -81,7 +81,8 @@ auth.onAuthStateChanged(user=>{
   } else {
     currentUser=null;
     localStorage.removeItem('edu_user');
-    if(!window.location.pathname.includes('index.html')&&window.location.pathname!=='/'&&!window.location.pathname.endsWith('edu-platform/')){
+    const pth=window.location.pathname.replace(/\/+$/,'');
+    if(!pth.includes('index.html')&&pth!==''&&pth!=='/'&&!pth.endsWith('edu-classroom')&&!pth.endsWith('edu-platform')){
       window.location.href='index.html';
     }
   }
