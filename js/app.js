@@ -20,6 +20,7 @@ const COLORS=[
 let currentUser=null;
 let _cloudClasses=[];
 let notifTimeout=null;
+let _authRetried=false;
 
 /* ========== NOTIFICATION ========== */
 function showNotification(msg){
@@ -67,12 +68,16 @@ function handleGoogleAuth(){
 }
 
 function logout(){
+  localStorage.removeItem('edu_user');
+  localStorage.removeItem('edu_just_logged_in');
+  _authRetried=false;
   auth.signOut().then(()=>window.location.href='index.html');
 }
 
 /* ========== AUTH STATE ========== */
 auth.onAuthStateChanged(user=>{
   if(user){
+    localStorage.removeItem('edu_just_logged_in');
     db.collection('users').doc(user.uid).get().then(snap=>{
       const data=snap.data()||{role:'student',name:user.displayName||'مستخدم'};
       currentUser={uid:user.uid,name:data.name,role:data.role};
@@ -80,33 +85,20 @@ auth.onAuthStateChanged(user=>{
     });
   } else {
     currentUser=null;
+    // Check cached user data - if exists, Firebase auth state might not be restored yet
+    const cached=localStorage.getItem('edu_user');
+    if(cached){
+      try{currentUser=JSON.parse(cached)}catch(e){}
+      if(!_authRetried){
+        _authRetried=true;
+        setTimeout(()=>location.reload(),2000);
+      }
+      return;
+    }
     const pth=window.location.pathname.replace(/\/+$/,'');
     const onLoginPage=pth.includes('index.html')||pth===''||pth==='/'||pth.endsWith('edu-classroom')||pth.endsWith('edu-platform');
     if(!onLoginPage){
-      // If we just logged in but persistence hasn't caught up yet, wait
-      if(localStorage.getItem('edu_just_logged_in')){
-        let tries=0;
-        const iv=setInterval(()=>{
-          tries++;
-          if(auth.currentUser){
-            clearInterval(iv);
-            localStorage.removeItem('edu_just_logged_in');
-            db.collection('users').doc(auth.currentUser.uid).get().then(snap=>{
-              const data=snap.data()||{role:'student',name:auth.currentUser.displayName||'مستخدم'};
-              currentUser={uid:auth.currentUser.uid,name:data.name,role:data.role};
-              localStorage.setItem('edu_user',JSON.stringify(currentUser));
-            });
-          } else if(tries>10){
-            clearInterval(iv);
-            localStorage.removeItem('edu_just_logged_in');
-            localStorage.removeItem('edu_user');
-            window.location.href='index.html';
-          }
-        },500);
-      } else {
-        localStorage.removeItem('edu_user');
-        window.location.href='index.html';
-      }
+      window.location.href='index.html';
     }
   }
 });

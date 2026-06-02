@@ -86,9 +86,14 @@ function showNotification(msg){
   setTimeout(()=>n.classList.add('hidden'),3000);
 }
 
+function saveUser(user, role){
+  const u={uid:user.uid,name:user.displayName||'مستخدم',role:role||'student'};
+  localStorage.setItem('edu_user',JSON.stringify(u));
+}
+
 function goToDashboard(){
   localStorage.setItem('edu_just_logged_in','1');
-  setTimeout(() => window.location.href='dashboard.html', 500);
+  setTimeout(() => window.location.href='dashboard.html', 800);
 }
 
 function handleAuth(mode){
@@ -96,7 +101,10 @@ function handleAuth(mode){
     const email=document.getElementById('auth-email').value.trim();
     const pass=document.getElementById('auth-pass').value;
     if(!email||!pass){showNotification('قم بملء جميع الحقول');return}
-    auth.signInWithEmailAndPassword(email,pass).then(goToDashboard).catch(e=>showNotification(e.message));
+    auth.signInWithEmailAndPassword(email,pass).then(()=>{
+      saveUser(auth.currentUser);
+      goToDashboard();
+    }).catch(e=>showNotification(e.message));
   } else {
     const name=document.getElementById('auth-name').value.trim();
     const email=document.getElementById('auth-email-signup').value.trim();
@@ -106,6 +114,7 @@ function handleAuth(mode){
     auth.createUserWithEmailAndPassword(email,pass).then(async cred=>{
       await cred.user.updateProfile({displayName:name});
       await db.collection('users').doc(cred.user.uid).set({name,email,role,createdAt:Date.now()});
+      saveUser(cred.user,role);
       goToDashboard();
     }).catch(e=>showNotification(e.message));
   }
@@ -115,16 +124,24 @@ function handleGoogleAuth(){
   auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(async result=>{
     const user=result.user;
     const snap=await db.collection('users').doc(user.uid).get();
+    let role='student';
     if(!snap.exists){
-      const role=confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)')?'teacher':'student';
+      role=confirm('هل تريد التسجيل كمعلم؟ (OK=معلم, إلغاء=طالب)')?'teacher':'student';
       await db.collection('users').doc(user.uid).set({name:user.displayName,email:user.email,role,createdAt:Date.now()});
+    } else {
+      role=snap.data().role||'student';
     }
+    saveUser(user,role);
     goToDashboard();
   }).catch(e=>showNotification(e.message));
 }
 
-// If already logged in, go to dashboard
-if(auth.currentUser) goToDashboard();
+// Redirect returning logged-in users to dashboard immediately
+auth.onAuthStateChanged(user=>{
+  if(user && !localStorage.getItem('edu_just_logged_in')){
+    window.location.href='dashboard.html';
+  }
+});
 </script>
 </body>
 </html>
